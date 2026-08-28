@@ -1523,88 +1523,7 @@ body[data-app-theme="focus"]{
     const type = selected.dataset.type;
 
     if(type==="section"){
-      
-    if(type==="video"){
-      const frame = selected.querySelector("[data-video-frame]");
-      const currentSrc = frame?.getAttribute("src") || "";
-      function videoDisplayUrl(src){
-        const m = src.match(/youtube\.com\/embed\/([^?&]+)/);
-        return m ? `https://www.youtube.com/watch?v=${m[1]}` : src;
-      }
-      function normaliseVideoUrl(value){
-        const raw = String(value || "").trim();
-        if(!raw) return "";
-        try{
-          const u = new URL(raw, window.location.href);
-          if(u.hostname.includes("youtu.be")){
-            const id = u.pathname.split("/").filter(Boolean)[0];
-            return id ? `https://www.youtube.com/embed/${id}` : raw;
-          }
-          if(u.hostname.includes("youtube.com")){
-            if(u.pathname.startsWith("/embed/")) return raw;
-            if(u.pathname.startsWith("/shorts/")){
-              const id = u.pathname.split("/")[2];
-              return id ? `https://www.youtube.com/embed/${id}` : raw;
-            }
-            const id = u.searchParams.get("v");
-            return id ? `https://www.youtube.com/embed/${id}` : raw;
-          }
-          if(u.hostname.includes("vimeo.com")){
-            const id = u.pathname.split("/").filter(Boolean).pop();
-            return /^\d+$/.test(id || "") ? `https://player.vimeo.com/video/${id}` : raw;
-          }
-        }catch{}
-        return raw;
-      }
-      const wrap = selected.querySelector(".sf-video");
-      const radius = parseInt(getComputedStyle(wrap).borderRadius) || 14;
       inspector.innerHTML = `
-        <div class="field"><label>Video URL</label><input id="videoUrl" type="url" value="${esc(videoDisplayUrl(currentSrc))}" placeholder="Paste YouTube, Vimeo or video URL"></div>
-        <div class="inspector-note">Paste a normal YouTube link such as youtube.com/watch?v=... or a Vimeo/video URL. YouTube and Vimeo links are converted automatically.</div>
-        <div class="field"><label>Aspect ratio</label>
-          <select id="videoRatio">
-            <option value="16/9">16:9 — Widescreen</option>
-            <option value="4/3">4:3 — Standard</option>
-            <option value="1/1">1:1 — Square</option>
-            <option value="9/16">9:16 — Vertical</option>
-          </select>
-        </div>
-        <div class="field"><label>Corner radius</label><input id="videoRadius" type="number" min="0" max="80" value="${radius}"></div>
-        <div class="field"><label>Order</label><div class="move-buttons"><button id="moveUp">↑ Up</button><button id="moveDown">↓ Down</button></div></div>
-        <div class="inspector-note">Turn on <b>Free move</b> above the canvas to position this video anywhere inside its section.</div>
-        <div class="position-grid">
-          <div class="field"><label>X offset</label><input id="offsetX" type="number" value="${Number(selected.dataset.offsetX)||0}"></div>
-          <div class="field"><label>Y offset</label><input id="offsetY" type="number" value="${Number(selected.dataset.offsetY)||0}"></div>
-        </div>
-        <div class="field position-row"><button id="resetPosition" class="mini-button" type="button">Reset position</button></div>
-        <button id="deleteItem" class="danger">Delete element</button>`;
-
-      const ratio = (wrap?.style.aspectRatio || "16 / 9").replace(/\s/g,"");
-      const ratioSelect = $("videoRatio");
-      if(ratioSelect) ratioSelect.value = ratio;
-
-      $("videoUrl")?.addEventListener("change", e=>{
-        const src = normaliseVideoUrl(e.target.value);
-        if(frame && src) frame.src = src;
-        persistCurrent();
-      });
-      $("videoRatio")?.addEventListener("change", e=>{
-        if(wrap) wrap.style.aspectRatio = e.target.value;
-        persistCurrent();
-      });
-      $("videoRadius")?.addEventListener("input", e=>{
-        if(wrap) wrap.style.borderRadius = Math.max(0, Math.min(80, Number(e.target.value)||0))+"px";
-      });
-      $("moveUp")?.addEventListener("click",()=>moveSelected(-1));
-      $("moveDown")?.addEventListener("click",()=>moveSelected(1));
-      $("offsetX")?.addEventListener("input",e=>setSelectedOffset("x",e.target.value));
-      $("offsetY")?.addEventListener("input",e=>setSelectedOffset("y",e.target.value));
-      $("resetPosition")?.addEventListener("click",()=>{ selected.dataset.offsetX=0; selected.dataset.offsetY=0; applyElementOffset(selected); renderInspector(); });
-      $("deleteItem")?.addEventListener("click",()=>{ saveSnapshot(); selected.remove(); selected=null; renderLayers(); renderInspector(); });
-      return;
-    }
-
-inspector.innerHTML = `
         <div class="field"><label>Background</label><input id="bgColor" type="color" value="${rgbToHex(getComputedStyle(selected).backgroundColor)}"></div>
         <div class="field"><label>Section style</label>
           <select id="sectionStyle">
@@ -1630,6 +1549,97 @@ inspector.innerHTML = `
       $("deleteItem").addEventListener("click",()=>{
         saveSnapshot(); selected.remove(); selected=null; renderInspector(); renderLayers();
       });
+      return;
+    }
+
+    if(type==="video"){
+      const frame = selected.querySelector("[data-video-frame]");
+      const empty = selected.querySelector("[data-video-empty]");
+      const wrap = selected.querySelector(".sf-video");
+
+      function youtubeId(raw){
+        try{
+          const u = new URL(String(raw || "").trim(), location.href);
+          const host = u.hostname.replace(/^www\./,"");
+          if(host==="youtu.be") return u.pathname.split("/").filter(Boolean)[0] || "";
+          if(host.endsWith("youtube.com")){
+            if(u.pathname==="/watch") return u.searchParams.get("v") || "";
+            const parts = u.pathname.split("/").filter(Boolean);
+            if(["shorts","embed","live"].includes(parts[0])) return parts[1] || "";
+          }
+        }catch{}
+        return "";
+      }
+
+      function makeVideoSrc(raw){
+        raw = String(raw || "").trim();
+        if(!raw) return "";
+        const id = youtubeId(raw);
+        if(id){
+          const origin = location.origin && location.origin !== "null" ? `&origin=${encodeURIComponent(location.origin)}` : "";
+          return `https://www.youtube.com/embed/${encodeURIComponent(id)}?playsinline=1${origin}`;
+        }
+        try{
+          const u = new URL(raw, location.href);
+          if(u.hostname.replace(/^www\./,"")==="vimeo.com"){
+            const id = u.pathname.split("/").filter(Boolean).pop();
+            if(/^\d+$/.test(id || "")) return `https://player.vimeo.com/video/${id}`;
+          }
+        }catch{}
+        return raw;
+      }
+
+      function displayVideoUrl(){
+        return selected.dataset.videoUrl || "";
+      }
+
+      inspector.innerHTML = `
+        <div class="field"><label>Video URL</label><textarea id="videoUrl" placeholder="Paste a YouTube, YouTube Shorts, Vimeo, or direct video URL">${esc(displayVideoUrl())}</textarea></div>
+        <div class="inspector-note">YouTube watch links and Shorts links are converted automatically. If a creator has disabled embedding, that particular YouTube video still cannot play inside another site.</div>
+        <div class="field"><label>Aspect ratio</label>
+          <select id="videoRatio">
+            <option value="16/9">16:9 — Widescreen</option>
+            <option value="4/3">4:3 — Standard</option>
+            <option value="1/1">1:1 — Square</option>
+            <option value="9/16">9:16 — Vertical</option>
+          </select>
+        </div>
+        <div class="field"><label>Corner radius</label><input id="videoRadius" type="number" min="0" max="80" value="${parseInt(getComputedStyle(wrap).borderRadius)||14}"></div>
+        <div class="field"><label>Order</label><div class="move-buttons"><button id="moveUp">↑ Up</button><button id="moveDown">↓ Down</button></div></div>
+        <div class="inspector-note">Turn on <b>Free move</b> above the canvas, then drag this video anywhere inside its section.</div>
+        <div class="position-grid">
+          <div class="field"><label>X offset</label><input id="offsetX" type="number" value="${Number(selected.dataset.offsetX)||0}"></div>
+          <div class="field"><label>Y offset</label><input id="offsetY" type="number" value="${Number(selected.dataset.offsetY)||0}"></div>
+        </div>
+        <div class="field position-row"><button id="resetPosition" class="mini-button" type="button">Reset position</button></div>
+        <button id="deleteItem" class="danger">Delete element</button>`;
+
+      const currentRatio = (wrap.style.aspectRatio || "16 / 9").replace(/\s/g,"");
+      $("videoRatio").value = currentRatio;
+
+      function updateVideo(){
+        const raw = $("videoUrl").value.trim();
+        selected.dataset.videoUrl = raw;
+        const src = makeVideoSrc(raw);
+        if(frame){
+          frame.setAttribute("referrerpolicy","strict-origin-when-cross-origin");
+          frame.src = src;
+          frame.style.display = src ? "block" : "none";
+        }
+        if(empty) empty.style.display = src ? "none" : "grid";
+        persistCurrent();
+      }
+
+      $("videoUrl").addEventListener("change",updateVideo);
+      $("videoUrl").addEventListener("paste",()=>setTimeout(updateVideo,0));
+      $("videoRatio").addEventListener("change",e=>{wrap.style.aspectRatio=e.target.value;persistCurrent();});
+      $("videoRadius").addEventListener("input",e=>{wrap.style.borderRadius=Math.max(0,Math.min(80,Number(e.target.value)||0))+"px";persistCurrent();});
+      $("moveUp").addEventListener("click",()=>moveSelected(-1));
+      $("moveDown").addEventListener("click",()=>moveSelected(1));
+      $("offsetX").addEventListener("input",e=>setSelectedOffset("x",e.target.value));
+      $("offsetY").addEventListener("input",e=>setSelectedOffset("y",e.target.value));
+      $("resetPosition").addEventListener("click",()=>{selected.dataset.offsetX=0;selected.dataset.offsetY=0;applyElementOffset(selected);renderInspector();});
+      $("deleteItem").addEventListener("click",()=>{saveSnapshot();selected.remove();selected=null;renderLayers();renderInspector();});
       return;
     }
 
@@ -1758,7 +1768,7 @@ inspector.innerHTML = `
       if(type==="faq") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-faq"><details open><summary data-editable-primary>What can I build?</summary><p>Anything from a landing page to a portfolio or product site.</p></details><details><summary>Can I export it?</summary><p>Yes. Download your finished website as HTML.</p></details><details><summary>Can I move things around?</summary><p>Yes. Reorder normally or turn on Free move.</p></details></div>`;
       if(type==="footer") el.innerHTML = `<div class="drag-handle">Reorder</div><footer class="sf-footer"><div><div class="sf-brand" data-editable-primary>YourBrand</div><p style="opacity:.65">Build something people remember.</p></div><div><strong>Product</strong><a href="#">Features</a><a href="#">Pricing</a></div><div><strong>Company</strong><a href="#">About</a><a href="#">Contact</a></div><div><strong>Legal</strong><a href="#">Privacy</a><a href="#">Terms</a></div></footer>`;
       if(type==="gallery") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-gallery"><img src="https://picsum.photos/800/800?random=11" alt=""><img src="https://picsum.photos/500/500?random=12" alt=""><img src="https://picsum.photos/500/500?random=13" alt=""><img src="https://picsum.photos/500/500?random=14" alt=""><img src="https://picsum.photos/500/500?random=15" alt=""></div>`;
-      if(type==="video") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-video" style="position:relative;aspect-ratio:16/9;background:#111827;border-radius:14px;overflow:hidden"><iframe data-video-frame src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Embedded video" style="width:100%;height:100%;border:0;display:block" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+      if(type==="video") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-video" style="position:relative;aspect-ratio:16/9;background:#111827;border-radius:14px;overflow:hidden"><iframe data-video-frame src="" title="Video player" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:100%;border:0;display:block" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe><div data-video-empty style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#111827;font-weight:800">Select this video and paste a URL →</div></div>`;
       if(type==="form") el.innerHTML = `<div class="drag-handle">Reorder</div><form class="sf-form" onsubmit="return false"><div class="sf-form-row"><input placeholder="Name"><input type="email" placeholder="Email"></div><textarea placeholder="Message"></textarea><div><button class="cta" type="button" data-editable-primary>Send message</button></div></form>`;
       if(type==="list") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-list"><div><b>✓</b><span data-editable-primary>Beautiful responsive layouts</span></div><div><b>✓</b><span>Drag, reorder and free-position elements</span></div><div><b>✓</b><span>Export as a standalone website</span></div></div>`;
       if(type==="progress") el.innerHTML = `<div class="drag-handle">Reorder</div><div style="display:grid;gap:8px"><div style="display:flex;justify-content:space-between"><strong data-editable-primary>Project progress</strong><span>68%</span></div><div class="sf-progress"><span></span></div></div>`;
