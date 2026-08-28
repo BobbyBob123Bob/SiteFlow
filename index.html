@@ -1335,6 +1335,20 @@ body.sf-inbox-mode [data-view="inbox"]{
 }
 </style>
 
+
+<style id="siteflow-account-panel-final-fix">
+#accountPanel{
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+}
+#accountPanel .rail-panel-head{
+  z-index:20;
+}
+#accountPanel .sf-account-section:last-child{
+  margin-bottom:24px;
+}
+</style>
+
 </head>
 <body>
 
@@ -1521,7 +1535,7 @@ body.sf-inbox-mode [data-view="inbox"]{
       <div class="rail-spacer"></div>
       <button id="inboxBtn" class="rail-button rail-inbox" type="button" data-tooltip="Inbox" aria-label="Inbox"><span class="rail-icon">✉</span><span>Inbox</span><span id="inboxUnreadBadge" class="inbox-unread-badge rail-badge" hidden>0</span></button>
       <button id="railSettingsBtn" class="rail-button" type="button" data-rail-panel="settingsPanel" data-tooltip="Builder settings" aria-label="Builder settings"><span class="rail-icon">⚙</span><span>Settings</span></button>
-      <button id="railAccountBtn" class="rail-button rail-account" type="button" data-tooltip="Account" aria-label="Account"><span id="railAccountAvatar" class="rail-account-avatar">U</span><span>Account</span></button>
+      <button id="railAccountBtn" class="rail-button rail-account" type="button" data-rail-panel="accountPanel" data-tooltip="Account settings" aria-label="Account settings"><span id="railAccountAvatar" class="rail-account-avatar">U</span><span>Account</span></button>
       <div id="railPopover" class="rail-popover" hidden></div>
     </nav>
     <aside class="left rail-flyout open" aria-label="Tool panel"><div id="railResizeHandle" class="rail-resize-handle" title="Drag to resize"></div>
@@ -1571,6 +1585,16 @@ body.sf-inbox-mode [data-view="inbox"]{
           <button id="settingsSyncProject" class="settings-primary-btn" type="button">Save project name</button>
         </div>
         <div class="settings-group danger-soft"><div class="settings-group-title">Reset editor preferences</div><p>Clears rail width, appearance and workspace preferences. Your pages and content stay untouched.</p><button id="resetEditorPrefs" class="settings-secondary-btn" type="button">Reset preferences</button></div>
+      </section>
+
+      <section class="panel rail-panel" id="accountPanel" hidden>
+        <div class="rail-panel-head">
+          <div>
+            <div class="rail-panel-kicker">Profile & security</div>
+            <strong>Account</strong>
+          </div>
+          <button class="rail-close" type="button" aria-label="Close panel">×</button>
+        </div>
       </section>
 
       <section class="panel rail-panel" id="pagesPanel" hidden>
@@ -3043,9 +3067,8 @@ document.querySelectorAll(".sf-form").forEach(form=>{
   const projectInput=document.getElementById('settingsProjectName'),projectMain=document.getElementById('projectName');if(projectInput&&projectMain)projectInput.value=projectMain.value||'';document.getElementById('settingsSyncProject')?.addEventListener('click',()=>{if(projectInput&&projectMain){projectMain.value=projectInput.value.trim()||'Untitled site';projectMain.dispatchEvent(new Event('change',{bubbles:true}));toastMini('Project name saved')}});
   document.getElementById('resetEditorPrefs')?.addEventListener('click',()=>{['grid','compact','labels','reduce','autoclose'].forEach(k=>localStorage.removeItem('siteflow_pref_'+k));localStorage.removeItem('siteflow_app_theme');localStorage.removeItem('siteflow_flyout_width');setWidth(344);setTheme('default');applyPrefs();toastMini('Editor preferences reset')});
 
-  // Keep account as a small account-specific menu; it no longer overlaps with Settings.
-  const pop=document.getElementById('railPopover');const showPop=html=>{if(pop){pop.innerHTML=html;pop.hidden=false}},closePop=()=>{if(pop)pop.hidden=true};
-  document.getElementById('railAccountBtn')?.addEventListener('click',e=>{e.stopPropagation();const txt=document.getElementById('userChipText')?.textContent||'Workspace';showPop(`<div class="rail-popover-title">Account</div><div class="rail-popover-meta">${esc(txt)}</div><button id="railProxySignOut">↪ Sign out</button>`);pop.querySelector('#railProxySignOut')?.addEventListener('click',()=>document.getElementById('signOutBtn')?.click())});document.addEventListener('click',e=>{if(pop&&!pop.hidden&&!e.target.closest('.pro-rail'))closePop()});
+  // Account now opens its own full Account panel via data-rail-panel="accountPanel".
+  const pop=document.getElementById('railPopover'); if(pop) pop.hidden=true;
   const syncAvatar=()=>{const top=document.getElementById('userAvatar')?.textContent?.trim();if(top)document.getElementById('railAccountAvatar').textContent=top.slice(0,2)};syncAvatar();setTimeout(syncAvatar,900);
   function toastMini(msg){const old=document.querySelector('.settings-toast');old?.remove();const t=document.createElement('div');t.className='settings-toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1600)}
 
