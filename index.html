@@ -1181,90 +1181,157 @@ body[data-app-theme="dark"] .global-result,body[data-app-theme="dark"] .create-a
 
 
 
-<style id="siteflow-account-theme-safe-css">
+
+
+
+<style id="siteflow-account-settings-v3-css">
 :root{
   --sf-brand:#5b78ff;
   --sf-brand-2:#7c5cff;
+  --sf-brand-rgb:91,120,255;
   --sf-brand-soft:rgba(91,120,255,.12);
-  --sf-brand-border:rgba(91,120,255,.25);
+  --sf-brand-soft-strong:rgba(91,120,255,.18);
+  --sf-brand-border:rgba(91,120,255,.28);
   --sf-brand-gradient:linear-gradient(135deg,#5b78ff 0%,#7c5cff 100%);
 }
 
-/* BRANDING: editor only */
-body:not(.sf-inbox-mode) .sf-app-rail{
-  background:radial-gradient(circle at 50% 0%,rgba(91,120,255,.16),transparent 34%),var(--panel,#fff)!important;
-  border-right:1px solid var(--sf-brand-border)!important;
+/* Make the selected SiteFlow accent actually affect the editor */
+body:not(.sf-inbox-mode) .sf-app-rail,
+body:not(.sf-inbox-mode) .app-rail,
+body:not(.sf-inbox-mode) .workspace-rail{
+  border-right-color:var(--sf-brand-border)!important;
 }
 body:not(.sf-inbox-mode) .sf-rail-logo,
-body:not(.sf-inbox-mode) .sf-brand-mark{
+body:not(.sf-inbox-mode) .sf-brand-mark,
+body:not(.sf-inbox-mode) .brand-mark{
   background:var(--sf-brand-gradient)!important;
   color:#fff!important;
-  box-shadow:0 8px 24px rgba(91,120,255,.24)!important;
+  box-shadow:0 8px 24px rgba(var(--sf-brand-rgb),.24)!important;
 }
 body:not(.sf-inbox-mode) .sf-rail-btn.active,
-body:not(.sf-inbox-mode) .sf-rail-btn[aria-pressed="true"]{
+body:not(.sf-inbox-mode) .sf-rail-btn[aria-pressed="true"],
+body:not(.sf-inbox-mode) .rail-btn.active,
+body:not(.sf-inbox-mode) .rail-btn[aria-pressed="true"]{
   background:var(--sf-brand-soft)!important;
   color:var(--sf-brand)!important;
+  border-color:var(--sf-brand-border)!important;
 }
+body:not(.sf-inbox-mode) .sf-rail-btn.active::before,
+body:not(.sf-inbox-mode) .rail-btn.active::before{
+  background:var(--sf-brand-gradient)!important;
+}
+body:not(.sf-inbox-mode) button.primary,
+body:not(.sf-inbox-mode) .primary-btn,
+body:not(.sf-inbox-mode) .btn-primary,
+body:not(.sf-inbox-mode) [data-primary="true"],
+body:not(.sf-inbox-mode) .publish-btn{
+  background:var(--sf-brand-gradient)!important;
+  border-color:transparent!important;
+  color:#fff!important;
+}
+body:not(.sf-inbox-mode) .block:hover,
+body:not(.sf-inbox-mode) .element-card:hover,
+body:not(.sf-inbox-mode) .starter-card:hover{
+  border-color:var(--sf-brand-border)!important;
+  box-shadow:0 0 0 3px var(--sf-brand-soft)!important;
+}
+body:not(.sf-inbox-mode) input:focus,
+body:not(.sf-inbox-mode) textarea:focus,
+body:not(.sf-inbox-mode) select:focus{
+  outline:none!important;
+  border-color:var(--sf-brand)!important;
+  box-shadow:0 0 0 3px var(--sf-brand-soft)!important;
+}
+body:not(.sf-inbox-mode) input[type="checkbox"]:checked,
+body:not(.sf-inbox-mode) input[type="radio"]:checked{
+  accent-color:var(--sf-brand)!important;
+}
+body:not(.sf-inbox-mode) .badge,
+body:not(.sf-inbox-mode) .chip.active,
+body:not(.sf-inbox-mode) .filter.active,
+body:not(.sf-inbox-mode) .tab.active{
+  border-color:var(--sf-brand-border)!important;
+}
+body:not(.sf-inbox-mode) a:hover{color:var(--sf-brand)}
 
-/* ACCOUNT / SETTINGS */
-.sf-account-card{
-  margin:10px 0;padding:14px;border:1px solid var(--line,#e3e9f1);
-  border-radius:16px;background:var(--panel,#fff);
+/* Account/settings panel */
+.sf-account-section{
+  border:1px solid var(--line,#e1e7ef);
+  border-radius:16px;
+  padding:14px;
+  margin:10px 0;
+  background:var(--panel,#fff);
 }
-.sf-account-profile{display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;align-items:center}
+.sf-account-section.danger{
+  border-color:rgba(220,38,38,.25);
+  background:rgba(220,38,38,.035);
+}
+.sf-account-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .sf-account-avatar{
-  width:46px;height:46px;border-radius:15px;background:var(--sf-brand-gradient);
-  display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px;
+  width:48px;height:48px;border-radius:15px;background:var(--sf-brand-gradient);
+  color:#fff;display:grid;place-items:center;font-size:16px;font-weight:900;
+  box-shadow:0 8px 22px rgba(var(--sf-brand-rgb),.22);
+  flex:0 0 auto;
 }
-.sf-account-title{font-weight:800;font-size:13px;color:var(--text,#111827)}
-.sf-account-sub{font-size:11px;color:var(--muted,#8a97a8);margin-top:3px}
-.sf-settings-group-title{
-  margin:18px 2px 8px;font-size:10px;font-weight:800;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--muted,#8a97a8)
+.sf-account-name{font-size:13px;font-weight:850;color:var(--text,#162033)}
+.sf-account-email{font-size:10.5px;color:var(--muted,#8794a7);margin-top:3px;overflow-wrap:anywhere}
+.sf-section-title{
+  font-size:10px;font-weight:850;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted,#8794a7);margin:17px 2px 8px;
 }
-.sf-setting-row{display:grid;gap:6px;margin:10px 0}
-.sf-setting-row label{font-size:11px;font-weight:700;color:var(--text,#111827)}
-.sf-setting-row input,.sf-setting-row select{
-  width:100%;box-sizing:border-box;padding:10px 11px;border-radius:10px;
-  border:1px solid var(--line,#dfe5ee);background:var(--panel,#fff);color:var(--text,#111827)
+.sf-field{display:grid;gap:6px;margin:10px 0}
+.sf-field label{font-size:11px;font-weight:750;color:var(--text,#162033)}
+.sf-field input,.sf-field select{
+  width:100%;box-sizing:border-box;border:1px solid var(--line,#dce3ec);
+  background:var(--panel,#fff);color:var(--text,#162033);
+  border-radius:10px;padding:10px 11px;font:inherit;font-size:11.5px;
 }
-.sf-setting-note{font-size:10px;line-height:1.45;color:var(--muted,#8a97a8)}
-.sf-brand-swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
-.sf-brand-swatch{
-  height:32px;border-radius:10px;border:2px solid transparent;cursor:pointer;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)
+.sf-field small,.sf-note{font-size:10px;color:var(--muted,#8794a7);line-height:1.45}
+.sf-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sf-account-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.sf-account-btn{
+  border:1px solid var(--line,#dce3ec);background:var(--panel,#fff);color:var(--text,#162033);
+  border-radius:10px;padding:9px 10px;font-size:11px;font-weight:800;cursor:pointer;
 }
-.sf-brand-swatch.active{border-color:var(--text,#111827)}
-.sf-account-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.sf-mini-action{
-  padding:9px;border-radius:10px;border:1px solid var(--line,#dfe5ee);
-  background:var(--panel,#fff);color:var(--text,#111827);font-size:11px;font-weight:700;cursor:pointer
+.sf-account-btn:hover{border-color:var(--sf-brand);color:var(--sf-brand)}
+.sf-account-btn.primary{background:var(--sf-brand-gradient)!important;color:#fff!important;border-color:transparent!important}
+.sf-account-btn.danger{border-color:rgba(220,38,38,.34);color:#c62828}
+.sf-account-btn.danger:hover{background:rgba(220,38,38,.07);border-color:#dc2626}
+.sf-save-state{font-size:10px;color:var(--sf-brand);min-height:14px;margin-top:7px}
+.sf-theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}
+.sf-theme-swatch{
+  height:34px;border-radius:10px;border:2px solid transparent;cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
 }
-.sf-mini-action:hover{border-color:var(--sf-brand);color:var(--sf-brand)}
-.sf-save-state{font-size:10px;color:var(--sf-brand);min-height:14px;margin-top:6px}
+.sf-theme-swatch.active{border-color:var(--text,#162033);transform:translateY(-1px)}
+.sf-theme-name{font-size:10px;font-weight:750;color:var(--text,#162033);margin-top:8px}
+.sf-danger-copy{font-size:10.5px;line-height:1.5;color:var(--muted,#8794a7)}
+.sf-delete-confirm{
+  display:none;margin-top:10px;padding:10px;border-radius:10px;
+  background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.18)
+}
+.sf-delete-confirm.open{display:block}
+.sf-delete-confirm input{margin-top:8px}
+.sf-danger-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 
-/* INBOX CLEANUP:
-   Hide the editor rail/flyouts while Inbox is open and make Inbox occupy the viewport. */
+/* Inbox must stay isolated from editor rail/settings */
 body.sf-inbox-mode .sf-app-rail,
+body.sf-inbox-mode .app-rail,
+body.sf-inbox-mode .workspace-rail,
 body.sf-inbox-mode .rail-flyout,
-body.sf-inbox-mode .left.rail-flyout,
-body.sf-inbox-mode .sf-workspace-rail,
-body.sf-inbox-mode [class*="workspace-rail"]{
+body.sf-inbox-mode .left.rail-flyout{
   display:none!important;
 }
-body.sf-inbox-mode{
-  --sf-rail:0px!important;
-  --sf-flyout:0px!important;
-}
+body.sf-inbox-mode{--sf-rail:0px!important;--sf-flyout:0px!important}
 body.sf-inbox-mode .inbox-shell,
 body.sf-inbox-mode .inbox-page,
 body.sf-inbox-mode #inboxView,
 body.sf-inbox-mode [data-view="inbox"]{
-  left:0!important;
-  margin-left:0!important;
-  width:100%!important;
-  max-width:none!important;
+  left:0!important;margin-left:0!important;width:100%!important;max-width:none!important
+}
+
+@media (max-width:560px){
+  .sf-row-2,.sf-account-actions,.sf-danger-actions{grid-template-columns:1fr}
 }
 </style>
 
@@ -2993,226 +3060,373 @@ document.querySelectorAll(".sf-form").forEach(form=>{
 
 
 
-<script id="siteflow-account-theme-safe-js">
+
+
+
+<script id="siteflow-account-settings-v3-js">
 (() => {
-  const ACCOUNT_KEY="siteflow_account_details_v2";
-  const BRAND_KEY="siteflow_brand_colour_v2";
-  const presets={
-    flow:["#5b78ff","#7c5cff"],
-    ocean:["#2583ff","#35b7ff"],
-    violet:["#7c5cff","#b45cff"],
-    mint:["#18a999","#43c59e"],
-    sunset:["#ff6b6b","#ff9f43"]
+  const PROFILE_KEY="siteflow_account_profile_v3";
+  const BRAND_KEY="siteflow_brand_v3";
+
+  const THEMES={
+    flow:{name:"Flow",a:"#5b78ff",b:"#7c5cff"},
+    ocean:{name:"Ocean",a:"#2583ff",b:"#35b7ff"},
+    violet:{name:"Violet",a:"#7c5cff",b:"#b45cff"},
+    mint:{name:"Mint",a:"#18a999",b:"#43c59e"},
+    sunset:{name:"Sunset",a:"#ff6b6b",b:"#ff9f43"}
   };
 
-  const byId=id=>document.getElementById(id);
+  const $=id=>document.getElementById(id);
 
-  function setInboxMode(on){
-    document.body.classList.toggle("sf-inbox-mode",!!on);
+  function rgb(hex){
+    const n=parseInt(hex.slice(1),16);
+    return `${(n>>16)&255},${(n>>8)&255},${n&255}`;
+  }
+
+  function applyTheme(key){
+    const t=THEMES[key]||THEMES.flow;
+    const root=document.documentElement;
+    root.style.setProperty("--sf-brand",t.a);
+    root.style.setProperty("--sf-brand-2",t.b);
+    root.style.setProperty("--sf-brand-rgb",rgb(t.a));
+    root.style.setProperty("--sf-brand-soft",`rgba(${rgb(t.a)},.12)`);
+    root.style.setProperty("--sf-brand-soft-strong",`rgba(${rgb(t.a)},.18)`);
+    root.style.setProperty("--sf-brand-border",`rgba(${rgb(t.a)},.28)`);
+    root.style.setProperty("--sf-brand-gradient",`linear-gradient(135deg,${t.a} 0%,${t.b} 100%)`);
+
+    /* Map to several common variables already used by SiteFlow. */
+    ["--accent","--primary","--brand","--focus","--purple"].forEach(v=>root.style.setProperty(v,t.a));
+    ["--accent-2","--primary-2"].forEach(v=>root.style.setProperty(v,t.b));
+    root.style.setProperty("--accent-soft",`rgba(${rgb(t.a)},.12)`);
+
+    document.body.dataset.sfTheme=key;
+    localStorage.setItem(BRAND_KEY,key);
+
+    document.querySelectorAll(".sf-theme-swatch").forEach(btn=>{
+      btn.classList.toggle("active",btn.dataset.theme===key);
+    });
+    if($("sfThemeCurrent")) $("sfThemeCurrent").textContent=t.name;
+  }
+
+  function getPanel(id,label){
+    const exact=$(id);
+    if(exact) return exact;
+    const candidates=[...document.querySelectorAll(".rail-panel")];
+    return candidates.find(p=>{
+      const h=p.querySelector("h1,h2,h3,.rail-panel-title,.panel-title");
+      return h && h.textContent.trim().toLowerCase()===label.toLowerCase();
+    })||null;
+  }
+
+  function accountUI(){
+    return `
+      <div id="sfAccountManagerV3">
+        <div class="sf-account-section">
+          <div class="sf-account-head">
+            <div class="sf-account-avatar" id="sfAvatar">SF</div>
+            <div style="min-width:0">
+              <div class="sf-account-name" id="sfProfileName">SiteFlow User</div>
+              <div class="sf-account-email" id="sfProfileEmail">No account email set</div>
+            </div>
+          </div>
+          <div class="sf-note">Manage the details SiteFlow shows for this account and workspace.</div>
+        </div>
+
+        <div class="sf-section-title">Personal details</div>
+        <div class="sf-account-section">
+          <div class="sf-field">
+            <label for="sfDisplayName">Display name</label>
+            <input id="sfDisplayName" maxlength="50" placeholder="Your name">
+          </div>
+          <div class="sf-field">
+            <label for="sfAccountEmail">Email address</label>
+            <input id="sfAccountEmail" type="email" placeholder="you@example.com">
+            <small>This updates the email shown in SiteFlow's interface. Verification/login email changes still depend on your backend account system.</small>
+          </div>
+          <div class="sf-field">
+            <label for="sfWorkspaceName">Workspace name</label>
+            <input id="sfWorkspaceName" maxlength="60" placeholder="My Workspace">
+          </div>
+          <div class="sf-row-2">
+            <div class="sf-field">
+              <label for="sfRole">Role</label>
+              <select id="sfRole">
+                <option value="owner">Owner</option>
+                <option value="designer">Designer</option>
+                <option value="developer">Developer</option>
+                <option value="marketer">Marketer</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="sf-field">
+              <label for="sfStartPanel">Start screen</label>
+              <select id="sfStartPanel">
+                <option value="elements">Elements</option>
+                <option value="pages">Pages</option>
+                <option value="layers">Layers</option>
+                <option value="inbox">Inbox</option>
+                <option value="closed">Canvas only</option>
+              </select>
+            </div>
+          </div>
+          <div class="sf-account-actions">
+            <button class="sf-account-btn primary" id="sfSaveProfile" type="button">Save changes</button>
+            <button class="sf-account-btn" id="sfResetProfile" type="button">Reset details</button>
+          </div>
+          <div class="sf-save-state" id="sfProfileState"></div>
+        </div>
+
+        <div class="sf-section-title">Security</div>
+        <div class="sf-account-section">
+          <div class="sf-field">
+            <label>Password</label>
+            <button class="sf-account-btn" id="sfChangePassword" type="button">Change password</button>
+            <small id="sfPasswordNote">This opens SiteFlow's password-change flow when your authentication backend supports it.</small>
+          </div>
+          <div class="sf-field">
+            <label>Session</label>
+            <button class="sf-account-btn" id="sfSignOut" type="button">Sign out on this device</button>
+          </div>
+        </div>
+
+        <div class="sf-section-title">Danger zone</div>
+        <div class="sf-account-section danger">
+          <div class="sf-account-name" style="color:#c62828">Delete account</div>
+          <div class="sf-danger-copy" style="margin-top:5px">
+            Removes SiteFlow account data stored in this browser, including local profile preferences and editor settings.
+            Server-side account deletion needs a matching backend endpoint before SiteFlow can permanently remove a hosted account.
+          </div>
+          <button class="sf-account-btn danger" id="sfDeleteOpen" type="button" style="margin-top:10px;width:100%">Delete account</button>
+
+          <div class="sf-delete-confirm" id="sfDeleteConfirm">
+            <div class="sf-danger-copy">Type <b>DELETE</b> to confirm.</div>
+            <input id="sfDeleteText" placeholder="DELETE" autocomplete="off">
+            <div class="sf-danger-actions">
+              <button class="sf-account-btn" id="sfDeleteCancel" type="button">Cancel</button>
+              <button class="sf-account-btn danger" id="sfDeleteFinal" type="button">Delete permanently</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function settingsUI(){
+    return `
+      <div id="sfWorkingColourSettings">
+        <div class="sf-section-title">SiteFlow colour</div>
+        <div class="sf-account-section">
+          <div class="sf-account-name">Interface accent</div>
+          <div class="sf-note">This changes the editor's active tools, buttons, focus rings, highlights, logo accents and hover states.</div>
+          <div class="sf-theme-grid">
+            <button class="sf-theme-swatch" data-theme="flow" title="Flow" style="background:linear-gradient(135deg,#5b78ff,#7c5cff)"></button>
+            <button class="sf-theme-swatch" data-theme="ocean" title="Ocean" style="background:linear-gradient(135deg,#2583ff,#35b7ff)"></button>
+            <button class="sf-theme-swatch" data-theme="violet" title="Violet" style="background:linear-gradient(135deg,#7c5cff,#b45cff)"></button>
+            <button class="sf-theme-swatch" data-theme="mint" title="Mint" style="background:linear-gradient(135deg,#18a999,#43c59e)"></button>
+            <button class="sf-theme-swatch" data-theme="sunset" title="Sunset" style="background:linear-gradient(135deg,#ff6b6b,#ff9f43)"></button>
+          </div>
+          <div class="sf-theme-name">Current: <span id="sfThemeCurrent">Flow</span></div>
+        </div>
+      </div>`;
+  }
+
+  function profile(){
+    try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||"{}")}catch{return{}}
+  }
+
+  function updateProfilePreview(){
+    const name=$("sfDisplayName")?.value.trim()||"SiteFlow User";
+    const email=$("sfAccountEmail")?.value.trim()||"No account email set";
+    if($("sfProfileName")) $("sfProfileName").textContent=name;
+    if($("sfProfileEmail")) $("sfProfileEmail").textContent=email;
+    if($("sfAvatar")){
+      $("sfAvatar").textContent=
+        name.split(/\s+/).slice(0,2).map(x=>(x[0]||"")).join("").toUpperCase()||"SF";
+    }
+
+    /* Update common account-label locations if the existing interface has them. */
+    document.querySelectorAll("[data-account-name],.account-display-name").forEach(el=>el.textContent=name);
+    document.querySelectorAll("[data-account-email],.account-email").forEach(el=>{
+      if(!el.closest("#sfAccountManagerV3")) el.textContent=email;
+    });
+  }
+
+  function saveProfile(){
+    const data={
+      displayName:$("sfDisplayName")?.value.trim()||"",
+      email:$("sfAccountEmail")?.value.trim()||"",
+      workspace:$("sfWorkspaceName")?.value.trim()||"",
+      role:$("sfRole")?.value||"owner",
+      start:$("sfStartPanel")?.value||"elements"
+    };
+    localStorage.setItem(PROFILE_KEY,JSON.stringify(data));
+
+    /* Keep project/workspace naming in sync when possible. */
+    if(data.workspace){
+      const projectName=$("projectName");
+      if(projectName){
+        projectName.value=data.workspace;
+        projectName.dispatchEvent(new Event("input",{bubbles:true}));
+        projectName.dispatchEvent(new Event("change",{bubbles:true}));
+      }
+    }
+
+    updateProfilePreview();
+    if($("sfProfileState")){
+      $("sfProfileState").textContent="Account details saved";
+      setTimeout(()=>{if($("sfProfileState")) $("sfProfileState").textContent=""},1800);
+    }
+  }
+
+  function fillProfile(){
+    const p=profile();
+    if($("sfDisplayName")) $("sfDisplayName").value=p.displayName||"";
+    if($("sfAccountEmail")) $("sfAccountEmail").value=p.email||"";
+    if($("sfWorkspaceName")) $("sfWorkspaceName").value=p.workspace||"";
+    if($("sfRole")) $("sfRole").value=p.role||"owner";
+    if($("sfStartPanel")) $("sfStartPanel").value=p.start||"elements";
+    updateProfilePreview();
+  }
+
+  function clearSiteFlowLocalAccount(){
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && (
+        k.startsWith("siteflow") ||
+        k.startsWith("sf_") ||
+        k.includes("SiteFlow")
+      )) keys.push(k);
+    }
+    keys.forEach(k=>localStorage.removeItem(k));
+
+    /* Session storage too */
+    const skeys=[];
+    for(let i=0;i<sessionStorage.length;i++){
+      const k=sessionStorage.key(i);
+      if(k && (k.startsWith("siteflow")||k.startsWith("sf_")||k.includes("SiteFlow"))) skeys.push(k);
+    }
+    skeys.forEach(k=>sessionStorage.removeItem(k));
   }
 
   function inboxVisible(){
-    const candidates=[
-      byId("inboxView"),
+    const els=[
+      $("inboxView"),
       document.querySelector(".inbox-page"),
       document.querySelector(".inbox-shell"),
       document.querySelector('[data-view="inbox"]')
     ].filter(Boolean);
-    return candidates.some(el=>{
-      const cs=getComputedStyle(el);
-      return cs.display!=="none" && cs.visibility!=="hidden" && el.getBoundingClientRect().width>0;
+    return els.some(el=>{
+      const s=getComputedStyle(el),r=el.getBoundingClientRect();
+      return s.display!=="none"&&s.visibility!=="hidden"&&r.width>0&&r.height>0;
     });
   }
 
-  function syncInboxMode(){
-    setInboxMode(inboxVisible());
+  function syncInbox(){
+    document.body.classList.toggle("sf-inbox-mode",inboxVisible());
   }
 
-  function findExactPanel(id, label){
-    const exact=byId(id);
-    if(exact) return exact;
+  function install(){
+    const account=getPanel("accountPanel","Account");
+    const settings=getPanel("settingsPanel","Settings");
 
-    const panels=[...document.querySelectorAll(".rail-panel")];
-    return panels.find(p=>{
-      const heading=p.querySelector("h1,h2,h3,.rail-panel-title,.panel-title");
-      return heading && heading.textContent.trim().toLowerCase()===label.toLowerCase();
-    }) || null;
-  }
-
-  function accountMarkup(){
-    return `
-      <div id="sfAccountSettingsBlock">
-        <div class="sf-settings-group-title">Account details</div>
-        <div class="sf-account-card">
-          <div class="sf-account-profile">
-            <div class="sf-account-avatar" id="sfAccountAvatar">SF</div>
-            <div>
-              <div class="sf-account-title" id="sfAccountPreview">SiteFlow User</div>
-              <div class="sf-account-sub" id="sfAccountEmailPreview">Your builder profile</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sf-setting-row">
-          <label for="sfDisplayName">Display name</label>
-          <input id="sfDisplayName" maxlength="40" placeholder="Your name">
-        </div>
-        <div class="sf-setting-row">
-          <label for="sfAccountEmail">Account email</label>
-          <input id="sfAccountEmail" type="email" placeholder="you@example.com">
-        </div>
-        <div class="sf-setting-row">
-          <label for="sfWorkspaceName">Workspace name</label>
-          <input id="sfWorkspaceName" maxlength="50" placeholder="My Workspace">
-        </div>
-        <div class="sf-setting-row">
-          <label for="sfDefaultStart">Default start screen</label>
-          <select id="sfDefaultStart">
-            <option value="elements">Elements</option>
-            <option value="pages">Pages</option>
-            <option value="layers">Layers</option>
-            <option value="inbox">Inbox</option>
-            <option value="closed">Canvas only</option>
-          </select>
-        </div>
-        <div class="sf-setting-row">
-          <label for="sfEditorDensity">Editor density</label>
-          <select id="sfEditorDensity">
-            <option value="comfortable">Comfortable</option>
-            <option value="compact">Compact</option>
-          </select>
-        </div>
-        <div class="sf-account-actions">
-          <button class="sf-mini-action" id="sfSaveAccount" type="button">Save details</button>
-          <button class="sf-mini-action" id="sfClearAccount" type="button">Clear profile</button>
-        </div>
-        <div class="sf-save-state" id="sfAccountState"></div>
-      </div>`;
-  }
-
-  function brandMarkup(){
-    return `
-      <div id="sfBrandSettingsBlock">
-        <div class="sf-settings-group-title">SiteFlow appearance</div>
-        <div class="sf-account-card">
-          <div class="sf-account-title">Interface accent</div>
-          <div class="sf-account-sub">Flow is the default SiteFlow blue-violet theme.</div>
-          <div class="sf-brand-swatches" style="margin-top:12px">
-            <button class="sf-brand-swatch" data-brand="flow" title="Flow" style="background:linear-gradient(135deg,#5b78ff,#7c5cff)"></button>
-            <button class="sf-brand-swatch" data-brand="ocean" title="Ocean" style="background:linear-gradient(135deg,#2583ff,#35b7ff)"></button>
-            <button class="sf-brand-swatch" data-brand="violet" title="Violet" style="background:linear-gradient(135deg,#7c5cff,#b45cff)"></button>
-            <button class="sf-brand-swatch" data-brand="mint" title="Mint" style="background:linear-gradient(135deg,#18a999,#43c59e)"></button>
-            <button class="sf-brand-swatch" data-brand="sunset" title="Sunset" style="background:linear-gradient(135deg,#ff6b6b,#ff9f43)"></button>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function hexRgb(hex){
-    const n=parseInt(hex.slice(1),16);
-    return `${n>>16},${(n>>8)&255},${n&255}`;
-  }
-
-  function applyBrand(name){
-    const [a,b]=presets[name]||presets.flow;
-    const root=document.documentElement;
-    root.style.setProperty("--sf-brand",a);
-    root.style.setProperty("--sf-brand-2",b);
-    root.style.setProperty("--sf-brand-gradient",`linear-gradient(135deg,${a},${b})`);
-    root.style.setProperty("--sf-brand-soft",`rgba(${hexRgb(a)},.12)`);
-    root.style.setProperty("--sf-brand-border",`rgba(${hexRgb(a)},.25)`);
-    localStorage.setItem(BRAND_KEY,name);
-    document.querySelectorAll(".sf-brand-swatch").forEach(x=>x.classList.toggle("active",x.dataset.brand===name));
-  }
-
-  function installSettings(){
-    const account=findExactPanel("accountPanel","Account");
-    const settings=findExactPanel("settingsPanel","Settings");
-
-    if(account && !byId("sfAccountSettingsBlock")){
-      (account.querySelector(".rail-panel-body,.panel-body,.content")||account)
-        .insertAdjacentHTML("beforeend",accountMarkup());
+    if(account && !$("sfAccountManagerV3")){
+      (account.querySelector(".rail-panel-body,.panel-body,.content")||account).insertAdjacentHTML("beforeend",accountUI());
+    }
+    if(settings && !$("sfWorkingColourSettings")){
+      (settings.querySelector(".rail-panel-body,.panel-body,.content")||settings).insertAdjacentHTML("beforeend",settingsUI());
     }
 
-    if(settings && !byId("sfBrandSettingsBlock")){
-      (settings.querySelector(".rail-panel-body,.panel-body,.content")||settings)
-        .insertAdjacentHTML("beforeend",brandMarkup());
-    }
+    fillProfile();
+    applyTheme(localStorage.getItem(BRAND_KEY)||"flow");
 
-    const saved=JSON.parse(localStorage.getItem(ACCOUNT_KEY)||"{}");
-    if(byId("sfDisplayName")) byId("sfDisplayName").value=saved.displayName||"";
-    if(byId("sfAccountEmail")) byId("sfAccountEmail").value=saved.email||"";
-    if(byId("sfWorkspaceName")) byId("sfWorkspaceName").value=saved.workspace||"";
-    if(byId("sfDefaultStart")) byId("sfDefaultStart").value=saved.start||"elements";
-    if(byId("sfEditorDensity")) byId("sfEditorDensity").value=saved.density||"comfortable";
+    $("sfDisplayName")?.addEventListener("input",updateProfilePreview);
+    $("sfAccountEmail")?.addEventListener("input",updateProfilePreview);
+    $("sfSaveProfile")?.addEventListener("click",saveProfile);
 
-    const preview=()=>{
-      const name=byId("sfDisplayName")?.value.trim()||"SiteFlow User";
-      const email=byId("sfAccountEmail")?.value.trim()||"Your builder profile";
-      if(byId("sfAccountPreview")) byId("sfAccountPreview").textContent=name;
-      if(byId("sfAccountEmailPreview")) byId("sfAccountEmailPreview").textContent=email;
-      if(byId("sfAccountAvatar")){
-        byId("sfAccountAvatar").textContent=
-          name.split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"SF";
+    $("sfResetProfile")?.addEventListener("click",()=>{
+      localStorage.removeItem(PROFILE_KEY);
+      fillProfile();
+      if($("sfProfileState")) $("sfProfileState").textContent="Details reset";
+    });
+
+    document.querySelectorAll(".sf-theme-swatch").forEach(btn=>{
+      btn.addEventListener("click",()=>applyTheme(btn.dataset.theme));
+    });
+
+    $("sfChangePassword")?.addEventListener("click",()=>{
+      /* Reuse an existing password/reset control if one exists. */
+      const existing=
+        document.querySelector('[data-action="change-password"]') ||
+        document.querySelector('[data-action="reset-password"]') ||
+        $("changePasswordBtn") ||
+        $("forgotPasswordBtn");
+      if(existing && existing!==$("sfChangePassword")){
+        existing.click();
+      }else{
+        const note=$("sfPasswordNote");
+        if(note) note.textContent="Password changing is ready in the UI, but your current backend does not expose a password-change endpoint yet.";
       }
-    };
+    });
 
-    byId("sfDisplayName")?.addEventListener("input",preview);
-    byId("sfAccountEmail")?.addEventListener("input",preview);
-
-    byId("sfSaveAccount")?.addEventListener("click",()=>{
-      const data={
-        displayName:byId("sfDisplayName")?.value.trim()||"",
-        email:byId("sfAccountEmail")?.value.trim()||"",
-        workspace:byId("sfWorkspaceName")?.value.trim()||"",
-        start:byId("sfDefaultStart")?.value||"elements",
-        density:byId("sfEditorDensity")?.value||"comfortable"
-      };
-      localStorage.setItem(ACCOUNT_KEY,JSON.stringify(data));
-      document.documentElement.dataset.editorDensity=data.density;
-      if(byId("sfAccountState")){
-        byId("sfAccountState").textContent="Saved";
-        setTimeout(()=>{ if(byId("sfAccountState")) byId("sfAccountState").textContent=""; },1400);
+    $("sfSignOut")?.addEventListener("click",()=>{
+      const existing=
+        document.querySelector('[data-action="logout"]') ||
+        $("logoutBtn") ||
+        $("signOutBtn");
+      if(existing && existing!==$("sfSignOut")){
+        existing.click();
+      }else{
+        sessionStorage.clear();
+        location.reload();
       }
-      preview();
     });
 
-    byId("sfClearAccount")?.addEventListener("click",()=>{
-      localStorage.removeItem(ACCOUNT_KEY);
-      ["sfDisplayName","sfAccountEmail","sfWorkspaceName"].forEach(id=>{ if(byId(id)) byId(id).value=""; });
-      if(byId("sfDefaultStart")) byId("sfDefaultStart").value="elements";
-      if(byId("sfEditorDensity")) byId("sfEditorDensity").value="comfortable";
-      preview();
+    $("sfDeleteOpen")?.addEventListener("click",()=>{
+      $("sfDeleteConfirm")?.classList.add("open");
+      $("sfDeleteText")?.focus();
+    });
+    $("sfDeleteCancel")?.addEventListener("click",()=>{
+      $("sfDeleteConfirm")?.classList.remove("open");
+      if($("sfDeleteText")) $("sfDeleteText").value="";
+    });
+    $("sfDeleteFinal")?.addEventListener("click",async()=>{
+      if(($("sfDeleteText")?.value||"").trim()!=="DELETE"){
+        $("sfDeleteText")?.focus();
+        return;
+      }
+
+      /* If a future backend endpoint exists, use it. If not, safely clear local account data. */
+      let serverDeleted=false;
+      try{
+        const r=await fetch("/api/account",{method:"DELETE",headers:{"Content-Type":"application/json"}});
+        serverDeleted=r.ok;
+      }catch{}
+
+      clearSiteFlowLocalAccount();
+
+      if(serverDeleted){
+        location.reload();
+      }else{
+        alert("SiteFlow data stored on this device has been deleted. Your current server does not yet have a permanent account-deletion endpoint.");
+        location.reload();
+      }
     });
 
-    document.querySelectorAll(".sf-brand-swatch").forEach(btn=>{
-      btn.addEventListener("click",()=>applyBrand(btn.dataset.brand));
+    syncInbox();
+    new MutationObserver(syncInbox).observe(document.body,{
+      subtree:true,attributes:true,attributeFilter:["class","style","hidden"]
     });
-
-    applyBrand(localStorage.getItem(BRAND_KEY)||"flow");
-    preview();
-  }
-
-  function boot(){
-    installSettings();
-    syncInboxMode();
-
-    // Keep UI mode correct if existing SiteFlow code opens/closes Inbox dynamically.
-    const observer=new MutationObserver(syncInboxMode);
-    observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:["class","style","hidden"]});
-
-    // Also resync after clicks on Inbox / Back to editor.
     document.addEventListener("click",e=>{
-      const txt=(e.target.closest("button,a")?.textContent||"").trim().toLowerCase();
-      if(txt.includes("inbox") || txt.includes("back to editor")){
-        setTimeout(syncInboxMode,0);
-        setTimeout(syncInboxMode,150);
+      const text=(e.target.closest("button,a")?.textContent||"").toLowerCase();
+      if(text.includes("inbox")||text.includes("back to editor")){
+        setTimeout(syncInbox,0);
+        setTimeout(syncInbox,160);
       }
     });
   }
 
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot);
-  else boot();
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",install);
+  else install();
 })();
 </script>
 
