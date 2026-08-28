@@ -1,0 +1,2457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SiteForge Studio</title>
+<style>
+:root{
+  --bg:#f6f7f4;
+  --paper:#ffffff;
+  --paper-2:#fbfbf9;
+  --ink:#20242a;
+  --muted:#7c8490;
+  --line:#e7e9e4;
+  --line-strong:#d9ddd6;
+  --peach:#f4b59f;
+  --peach-strong:#e98f73;
+  --mint:#bfe2d0;
+  --sky:#bdd8f2;
+  --lemon:#f4e4a8;
+  --lavender:#d9cff6;
+  --danger:#cf6c6c;
+  --shadow:0 14px 40px rgba(28,32,36,.08);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+  overflow:hidden;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+svg{display:block}
+.app{height:100vh;display:grid;grid-template-rows:62px 1fr}
+
+/* TOP */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:18px;padding:0 16px;border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.96);backdrop-filter:blur(14px)
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{
+  width:36px;height:36px;border-radius:11px;background:var(--peach);
+  display:grid;place-items:center;color:#4f3228;font-weight:900;
+  box-shadow:inset 0 0 0 1px rgba(80,50,40,.08)
+}
+.project-name{
+  width:210px;max-width:28vw;border:1px solid transparent;background:transparent;
+  padding:8px 9px;border-radius:9px;color:var(--ink);font-weight:750;outline:none
+}
+.project-name:hover,.project-name:focus{border-color:var(--line);background:var(--paper-2)}
+.top-center{
+  display:flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--line);
+  border-radius:11px;background:var(--paper-2)
+}
+.icon-button,.top-button{
+  border:1px solid transparent;background:transparent;color:#5f6874;
+  min-height:36px;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:750;
+  display:inline-flex;align-items:center;gap:7px
+}
+.icon-button:hover,.top-button:hover{background:#f0f2ee;color:var(--ink)}
+.top-actions{display:flex;gap:8px}
+.top-button{border-color:var(--line);background:#fff}
+.top-button.primary{
+  background:var(--peach);border-color:#efaa92;color:#4c2d25
+}
+.top-button.primary:hover{background:#f0a98f}
+
+/* WORKSPACE */
+.workspace{min-height:0;display:grid;grid-template-columns:242px 1fr 292px}
+.left,.right{background:var(--paper);min-height:0;overflow:auto}
+.left{border-right:1px solid var(--line)}
+.right{border-left:1px solid var(--line)}
+.panel{padding:16px;border-bottom:1px solid var(--line)}
+.panel-title{
+  font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:#929aa5;font-weight:850;margin-bottom:12px
+}
+
+/* PAGES */
+.panel-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.panel-title-row .panel-title{margin:0}
+.mini-button{
+  border:1px solid var(--line);background:#fff;color:#5d6671;border-radius:8px;
+  padding:6px 8px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:5px
+}
+.mini-button:hover{background:#f5f6f2}
+.page-list{display:grid;gap:5px}
+.page-row{
+  display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:9px;
+  border:1px solid transparent;cursor:pointer;color:#5e6672
+}
+.page-row:hover{background:#f7f8f5}
+.page-row.active{background:#fff4ef;border-color:#f2d3c7;color:#4a3a34}
+.page-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);flex:0 0 auto}
+.page-row.active .page-dot{background:var(--peach-strong)}
+.page-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:750}
+.page-more{border:0;background:transparent;color:#9ba1aa;padding:4px;border-radius:6px}
+.page-more:hover{background:#ecefe9;color:#4c535c}
+
+/* ADD BLOCKS */
+.block-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.block{
+  min-height:76px;border:1px solid var(--line);background:#fff;border-radius:11px;
+  padding:11px;text-align:left;color:#4f5863
+}
+.block:hover{border-color:var(--line-strong);box-shadow:0 5px 16px rgba(30,35,40,.05)}
+.block .block-icon{
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin-bottom:9px
+}
+.block:nth-child(1) .block-icon{background:#fff1eb}
+.block:nth-child(2) .block-icon{background:#eef7f2}
+.block:nth-child(3) .block-icon{background:#edf4fb}
+.block:nth-child(4) .block-icon{background:#fff9df}
+.block:nth-child(5) .block-icon{background:#f2effb}
+.block:nth-child(6) .block-icon{background:#eef3f4}
+.block strong{font-size:12px}
+
+/* LAYERS */
+.layers{display:grid;gap:4px}
+.layer{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 9px;border-radius:8px;color:#707986;font-size:12px;border:1px solid transparent
+}
+.layer:hover,.layer.active{background:#f6f7f3;border-color:#eceee9;color:#3f4750}
+.layer.child{padding-left:24px}
+
+/* CANVAS */
+.center{min-width:0;min-height:0;overflow:auto;background:#f0f2ee}
+.canvas-bar{
+  height:50px;position:sticky;top:0;z-index:12;
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid rgba(0,0,0,.04);
+  background:rgba(246,247,244,.9);backdrop-filter:blur(12px)
+}
+.device-tabs{
+  display:flex;gap:3px;padding:3px;border:1px solid var(--line-strong);
+  background:#fff;border-radius:10px
+}
+.device-tabs button{
+  border:0;background:transparent;color:#818996;border-radius:7px;padding:7px 10px;
+  font-size:11px;font-weight:800
+}
+.device-tabs button.active{background:#eef1ec;color:#39414a}
+.stage{padding:28px;display:flex;justify-content:center}
+.canvas{
+  width:100%;max-width:1180px;min-height:760px;background:#fff;color:#111;
+  box-shadow:var(--shadow);overflow:hidden;transition:max-width .18s ease
+}
+.canvas.tablet{max-width:768px}
+.canvas.mobile{max-width:390px}
+.site-section{position:relative;padding:72px 48px;border:2px solid transparent}
+.site-section:hover{border-color:#dfe9e3}
+.site-section.selected{border-color:var(--peach-strong)}
+.hero{background:linear-gradient(135deg,#fff8f5,#f5faf7);text-align:center}
+.hero h1{font-size:58px;line-height:1.04;margin:0 0 18px}
+.hero p{font-size:18px;color:#626a73;max-width:700px;margin:0 auto 28px;line-height:1.6}
+.section-default{background:#fff}
+.section-soft{background:#f8faf7}
+.section-dark{background:#23272d;color:#fff}
+.element{position:relative;border:1px solid transparent;border-radius:6px;cursor:pointer;touch-action:none}
+.element:hover{border-color:#d9e4de}
+.element.selected{outline:2px solid var(--peach-strong);outline-offset:3px}
+.drag-handle{
+  position:absolute;top:-28px;left:0;display:none;background:#3f464f;color:#fff;
+  border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:grab;user-select:none
+}
+.element.selected .drag-handle{display:block}
+.element.moving{opacity:.86;z-index:30}
+.drop-marker{height:4px;background:var(--peach-strong);border-radius:999px;margin:4px 0}
+.cta{
+  display:inline-block;background:#2c3137;color:#fff;padding:13px 20px;border-radius:10px;
+  text-decoration:none;font-weight:800
+}
+
+/* INSPECTOR */
+.empty{font-size:13px;color:#8b939e;line-height:1.6}
+.field{margin-bottom:14px}
+.field label{
+  display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+  color:#8c949f;font-weight:850;margin-bottom:6px
+}
+.field input,.field textarea,.field select{
+  width:100%;border:1px solid var(--line);background:#fff;color:#2d333a;
+  border-radius:9px;padding:9px 10px;outline:none
+}
+.field textarea{min-height:88px;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#e8b9aa;box-shadow:0 0 0 3px #fff2ed}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.move-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.move-buttons button{
+  border:1px solid var(--line);background:#fff;color:#555e69;border-radius:9px;padding:9px;font-weight:800
+}
+.move-buttons button:hover{background:#f5f6f2}
+.danger{
+  width:100%;border:1px solid #efd1d1;background:#fff7f7;color:#b95e5e;border-radius:9px;padding:9px;font-weight:850
+}
+
+/* MODALS */
+.modal{
+  position:fixed;inset:0;background:rgba(34,38,43,.25);display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px
+}
+.modal.show{display:flex}
+.modal-card{
+  width:min(560px,96vw);background:#fff;border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 30px 90px rgba(31,35,39,.16);overflow:hidden
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+.modal-body{padding:18px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.modal-card textarea{width:100%;height:45vh;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:ui-monospace,monospace}
+.notice{
+  position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--line-strong);
+  border-radius:10px;padding:10px 13px;color:#4a535d;font-size:12px;box-shadow:var(--shadow);
+  opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s;z-index:130
+}
+.notice.show{opacity:1;transform:none}
+
+@media(max-width:1000px){
+  .workspace{grid-template-columns:220px 1fr}
+  .right{display:none}
+}
+@media(max-width:720px){
+  .workspace{grid-template-columns:1fr}
+  .left{display:none}
+  .top-center{display:none}
+  .project-name{max-width:35vw}
+}
+</style>
+
+<style id="reference-redesign">
+:root{
+  --bg:#f7f9fb;--paper:#fff;--ink:#111827;--muted:#7c8798;--line:#e8edf2;
+  --cyan:#38c9c7;--cyan-soft:#e9fbfa;--peach:#ff9f87;--peach-soft:#fff0eb;
+  --blue:#348cff;--shadow:0 12px 35px rgba(40,55,75,.07)
+}
+body{background:#f7f9fb;color:var(--ink)}
+.topbar{
+  height:72px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);
+  box-shadow:0 1px 0 rgba(20,30,40,.02)
+}
+.app{grid-template-rows:72px 1fr}
+.logo{
+  width:42px;height:42px;border-radius:14px;color:#fff;font-size:0;
+  background:linear-gradient(145deg,#65dfdd 0 35%,#b9a6f7 36% 62%,#ff9f87 63% 100%);
+  position:relative;box-shadow:none
+}
+.logo:after{
+  content:"S";font-size:25px;font-weight:950;color:white;position:absolute;inset:0;
+  display:grid;place-items:center;text-shadow:0 1px 2px rgba(0,0,0,.08)
+}
+.project-name{font-size:20px;font-weight:850;width:185px}
+.top-center{background:#fff;border-color:var(--line);box-shadow:0 3px 12px rgba(40,55,75,.03)}
+.top-button.primary{background:var(--cyan);border-color:var(--cyan);color:#fff}
+.top-button.primary:hover{background:#28b9b7}
+.workspace{grid-template-columns:254px 1fr 300px}
+.left,.right{background:#fff}
+.panel{padding:18px 20px}
+.panel-title{color:#536071;font-size:11px;letter-spacing:.08em}
+.block-grid{display:grid;grid-template-columns:1fr;gap:5px}
+.block{
+  min-height:48px;padding:9px 12px;display:flex;align-items:center;gap:12px;
+  border-radius:9px;box-shadow:0 2px 8px rgba(40,55,75,.025)
+}
+.block .block-icon{margin:0;width:28px;height:28px;background:#f7f9fb!important;color:#596575}
+.block strong{font-size:12px}
+.page-row.active{background:#eef6ff;border-color:#dbeaff;color:#2377dc}
+.page-row.active .page-dot{background:var(--blue)}
+.center{background:#f8fafc}
+.canvas-bar{height:56px;background:rgba(255,255,255,.93);border-bottom:1px solid var(--line)}
+.device-tabs{box-shadow:0 3px 12px rgba(40,55,75,.04)}
+.device-tabs button.active{background:#edf5ff;color:#2581ed}
+.stage{padding:26px 22px 60px}
+.canvas{box-shadow:0 10px 35px rgba(45,60,80,.09);border:1px solid #e8edf2;border-radius:8px}
+.hero{
+  background:linear-gradient(135deg,#ffffff 0%,#fbfefd 55%,#fff7f3 100%);
+  text-align:left;padding:86px 54px
+}
+.hero h1{font-size:60px;max-width:650px;letter-spacing:-2.5px}
+.hero h1::first-line{color:#111827}
+.hero p{margin:0 0 28px;max-width:600px;color:#657082}
+.cta{background:var(--cyan);border-radius:9px}
+.site-section.selected{border-color:var(--blue)}
+.element.selected{outline-color:var(--blue)}
+.drag-handle{background:var(--blue)}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#7ab7ff;box-shadow:0 0 0 3px #edf6ff}
+.notice{border-color:#dfe7ee}
+</style>
+
+
+<style id="real-logo-fix">
+.logo{
+  width:46px!important;
+  height:46px!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  overflow:hidden;
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+}
+.logo::after{display:none!important;content:none!important}
+.logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+</style>
+
+
+<style id="auth-clean-styles">
+.auth-clean{
+  position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:
+    radial-gradient(circle at 18% 18%,rgba(108,222,220,.22),transparent 28%),
+    radial-gradient(circle at 82% 22%,rgba(255,161,136,.20),transparent 26%),
+    radial-gradient(circle at 55% 80%,rgba(190,171,247,.18),transparent 30%),
+    #f8fafc;
+}
+.auth-card{
+  width:min(940px,96vw);min-height:590px;display:grid;grid-template-columns:1.05fr .95fr;
+  background:#fff;border:1px solid #e7ecf0;border-radius:24px;overflow:hidden;
+  box-shadow:0 28px 80px rgba(45,60,80,.12);
+}
+.auth-left{
+  padding:40px;display:flex;flex-direction:column;justify-content:space-between;
+  background:linear-gradient(135deg,#eafafa 0%,#fff3ee 52%,#f3efff 100%);
+}
+.auth-brand{display:flex;align-items:center;gap:14px}
+.auth-brand img{width:58px;height:58px;object-fit:contain}
+.auth-brand strong{font-size:27px;letter-spacing:-.03em}
+.auth-brand small{display:block;color:#7d8793;margin-top:4px}
+.auth-copy h1{font-size:58px;line-height:.98;letter-spacing:-.055em;margin:0 0 14px;color:#151b22}
+.auth-copy em{font-style:normal;color:#2fb9b7}
+.auth-copy p{color:#697481;line-height:1.65}
+.auth-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.auth-pill{padding:12px;border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.65);border-radius:13px;font-size:11px;color:#66707c}
+.auth-pill b{display:block;color:#29313a;margin-bottom:3px}
+.auth-right{padding:42px;display:flex;align-items:center}
+.auth-box{width:100%;max-width:380px;margin:auto}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:#f3f5f7;border:1px solid #e7ebee;border-radius:11px;margin-bottom:24px}
+.auth-tab{border:0;background:transparent;border-radius:8px;padding:10px 12px;color:#7b8490;font-weight:800;cursor:pointer}
+.auth-tab.active{background:#fff;color:#222a32;box-shadow:0 2px 8px rgba(40,55,75,.06)}
+.auth-title h2{margin:0 0 7px;font-size:29px;letter-spacing:-.035em}
+.auth-title p{margin:0 0 20px;color:#7d8792;font-size:13px;line-height:1.55}
+.auth-field{margin-bottom:13px}
+.auth-field[hidden]{display:none!important}
+.auth-field label{display:block;margin-bottom:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#626c78}
+.auth-field input{width:100%;border:1px solid #dfe5e9;border-radius:10px;padding:12px 13px;outline:none;background:#fff;color:#20262d}
+.auth-field input:focus{border-color:#7bd4d2;box-shadow:0 0 0 3px #eafafa}
+.auth-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 17px}
+.auth-row label{font-size:12px;color:#76808b}
+.auth-row button{border:0;background:transparent;color:#2ba9a7;font-size:12px;font-weight:800;cursor:pointer}
+.auth-error{display:none;margin:-2px 0 12px;padding:9px 10px;border-radius:9px;background:#fff3f0;border:1px solid #f2d1c9;color:#b45f4e;font-size:12px}
+.auth-error.show{display:block}
+.auth-submit{width:100%;border:0;border-radius:10px;padding:13px;background:#39bfbc;color:#fff;font-weight:900;cursor:pointer}
+.auth-submit:hover{background:#2fb2af}
+.auth-note{text-align:center;color:#9aa2ac;font-size:11px;margin-top:14px}
+@media(max-width:800px){
+  .auth-card{grid-template-columns:1fr;min-height:auto}
+  .auth-left{display:none}
+  .auth-right{padding:30px 22px}
+}
+</style>
+
+
+<style id="siteflow-pro-upgrades">
+/* ===== SiteFlow Pro upgrades ===== */
+:root{--sf-radius:12px;--sf-focus:0 0 0 3px rgba(52,140,255,.16)}
+body[data-app-theme="dark"]{--bg:#0d1117;--paper:#121821;--paper-2:#171e28;--ink:#edf3f8;--muted:#97a3b2;--line:#26303d;--line-strong:#344151;--shadow:0 16px 45px rgba(0,0,0,.28)}
+body[data-app-theme="dark"] .topbar,body[data-app-theme="dark"] .left,body[data-app-theme="dark"] .right,body[data-app-theme="dark"] .canvas-bar{background:#121821;color:var(--ink);border-color:var(--line)}
+body[data-app-theme="dark"] .center{background:#0b1016}
+body[data-app-theme="dark"] .top-button,body[data-app-theme="dark"] .mini-button,body[data-app-theme="dark"] .device-tabs,body[data-app-theme="dark"] .block,body[data-app-theme="dark"] .field input,body[data-app-theme="dark"] .field textarea,body[data-app-theme="dark"] .field select{background:#171e28;color:#e7edf4;border-color:#2a3543}
+body[data-app-theme="dark"] .project-name{color:#edf3f8}
+body[data-app-theme="dark"] .panel-title{color:#8e9bac}
+body[data-app-theme="dark"] .layer:hover,body[data-app-theme="dark"] .layer.active{background:#1a222d;border-color:#2a3543;color:#edf3f8}
+body[data-app-theme="dark"] .page-row:hover{background:#171f29}
+body[data-app-theme="dark"] .notice{background:#17202a;color:#eaf0f6;border-color:#334150}
+body[data-app-theme="dark"] .device-tabs button.active{background:#25364b;color:#84baff}
+body[data-app-theme="focus"]{--bg:#f6f1ff;--paper:#ffffff;--paper-2:#fbf9ff;--line:#e9e0f7;--line-strong:#dcd0ef;--peach:#a887e8;--peach-strong:#7c5fc1}
+body[data-app-theme="focus"] .top-button.primary,body[data-app-theme="focus"] .auth-submit{background:#7c5fc1;border-color:#7c5fc1}
+
+.canvas-tools{display:flex;align-items:center;gap:8px;margin-left:12px}
+.mode-button{border:1px solid var(--line-strong);background:var(--paper);color:var(--muted);border-radius:10px;padding:8px 11px;font-size:11px;font-weight:850;display:inline-flex;align-items:center;gap:7px;min-height:34px}
+.mode-button.active{background:#edf5ff;border-color:#bcd8ff;color:#2377dc;box-shadow:var(--sf-focus)}
+body[data-app-theme="dark"] .mode-button{background:#171e28;border-color:#334050;color:#9daabc}
+body[data-app-theme="dark"] .mode-button.active{background:#1d3554;color:#8ec3ff;border-color:#345e8d}
+.free-move-hint{font-size:10px;color:var(--muted);white-space:nowrap}
+.canvas.free-move-mode .element{cursor:move}
+.canvas.free-move-mode .element::after{content:"";position:absolute;inset:-5px;border:1px dashed rgba(52,140,255,.3);border-radius:9px;pointer-events:none;opacity:0;transition:.15s}
+.canvas.free-move-mode .element:hover::after,.canvas.free-move-mode .element.selected::after{opacity:1}
+.canvas.free-move-mode .drag-handle{display:none!important}
+.element.free-dragging{z-index:50;cursor:grabbing!important;filter:drop-shadow(0 12px 18px rgba(30,50,70,.14))}
+.position-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.position-row{display:flex;gap:8px}.position-row button{flex:1}
+.inspector-note{font-size:11px;line-height:1.5;color:var(--muted);padding:10px 11px;background:var(--paper-2);border:1px solid var(--line);border-radius:9px;margin-bottom:12px}
+
+.saved-account{margin-bottom:13px}.saved-account[hidden]{display:none!important}.saved-account label{display:block;margin-bottom:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#626c78}.saved-account select{width:100%;border:1px solid #dfe5e9;border-radius:10px;padding:12px 13px;background:#fff;color:#20262d;outline:none}
+
+.onboarding{position:fixed;inset:0;z-index:250;background:linear-gradient(135deg,#f7fbff,#fbf9ff 58%,#fff7f3);display:none;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.onboarding.show{display:flex}.onboard-card{width:min(820px,100%);background:#fff;border:1px solid #e7edf2;border-radius:22px;box-shadow:0 28px 90px rgba(38,54,74,.13);overflow:hidden}.onboard-head{padding:28px 30px 16px}.onboard-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:#38aaa8;font-weight:900}.onboard-head h2{margin:8px 0 8px;font-size:32px;letter-spacing:-.04em}.onboard-head p{margin:0;color:#778391;line-height:1.6}.onboard-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:0 30px 20px}.onboard-progress span{height:5px;border-radius:99px;background:#edf1f4}.onboard-progress span.active{background:#3bc2c0}.onboard-body{padding:10px 30px 30px}.onboard-step{display:none}.onboard-step.active{display:block}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.choice{border:1px solid #e4eaf0;background:#fff;border-radius:15px;padding:17px;text-align:left;color:#34404c;min-height:92px;transition:.15s}.choice:hover{border-color:#badbdc;background:#fbffff;transform:translateY(-1px)}.choice.selected{border-color:#42c1bf;background:#effafa;box-shadow:0 0 0 3px #e5f8f7}.choice strong{display:block;margin-bottom:5px;font-size:14px}.choice small{color:#84909d;line-height:1.4}.vibe-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.vibe-preview{height:58px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(0,0,0,.08);display:grid;place-items:center;font-weight:900}.vibe-light{background:#f7f9fb;color:#222}.vibe-dark{background:#111821;color:#f2f6fa}.vibe-focus{background:linear-gradient(135deg,#f8f3ff,#ebe2ff);color:#5f4399}.onboard-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}.onboard-actions button{border:1px solid #e1e7ec;background:#fff;border-radius:11px;padding:11px 15px;font-weight:850;color:#596574}.onboard-actions .next{background:#3bc2c0;border-color:#3bc2c0;color:#fff}.onboard-actions button:disabled{opacity:.4;cursor:not-allowed}
+.user-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:11px;color:var(--muted);font-weight:800}.user-avatar{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#55d3d1,#9d89e8);display:grid;place-items:center;color:white;font-size:10px;font-weight:950}
+@media(max-width:760px){.canvas-bar{justify-content:flex-start;padding:0 10px;overflow:auto}.free-move-hint{display:none}.choice-grid,.vibe-grid{grid-template-columns:1fr}.onboard-head,.onboard-body{padding-left:20px;padding-right:20px}.onboard-progress{padding-left:20px;padding-right:20px}.user-chip{display:none}}
+</style>
+
+
+<style id="siteflow-shell-polish">
+/* ===== Editor shell polish ===== */
+:root{
+  --shell-sidebar:238px;
+  --shell-inspector:286px;
+  --shell-top:68px;
+}
+html,body{background:var(--bg)}
+body{font-size:14px}
+.app{grid-template-rows:var(--shell-top) minmax(0,1fr)}
+
+/* Header */
+.topbar{
+  height:var(--shell-top);padding:0 18px;gap:14px;
+  border-bottom:1px solid var(--line);box-shadow:none
+}
+.brand{gap:10px;flex:0 1 255px}
+.logo{width:42px!important;height:42px!important;border-radius:12px!important;flex:0 0 auto}
+.brand-meta{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px}
+.project-name{
+  width:160px;max-width:20vw;height:27px;padding:2px 5px;margin-left:-5px;
+  border-radius:7px;font-size:17px;line-height:1.15;font-weight:850;letter-spacing:-.025em
+}
+.brand-tagline{font-size:9.5px;line-height:1;color:var(--muted);font-weight:650;white-space:nowrap;letter-spacing:.01em}
+.top-center{padding:3px;border-radius:10px;flex:0 0 auto}
+.icon-button,.top-button{min-height:36px;padding:8px 10px;border-radius:9px}
+.top-actions{gap:6px;align-items:center;min-width:0}
+.user-chip{height:38px;padding:5px 8px 5px 6px;border-radius:10px;max-width:145px}
+.user-chip #userChipText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-avatar{width:26px;height:26px;border-radius:8px}
+
+/* Main editor proportions */
+.workspace{grid-template-columns:var(--shell-sidebar) minmax(360px,1fr) var(--shell-inspector);min-height:0}
+.left,.right{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.panel{padding:16px}
+.panel-title{font-size:10px;letter-spacing:.11em;color:var(--muted)}
+.block-grid{gap:7px}
+.block{
+  min-height:50px;border-radius:10px;padding:9px 10px;gap:10px;
+  background:var(--paper);box-shadow:none
+}
+.block .block-icon{width:30px;height:30px;border-radius:8px;flex:0 0 auto}
+.block strong{font-size:12px}
+.page-row{min-height:42px;padding:9px 10px;border-radius:10px}
+.layer{min-height:36px}
+
+/* Canvas area */
+.center{
+  position:relative;min-width:0;min-height:0;overflow:auto;
+  background-color:#f3f6f9;
+  background-image:radial-gradient(circle,rgba(86,103,122,.13) 1px,transparent 1px);
+  background-size:18px 18px;
+  scrollbar-width:thin;scrollbar-color:#aeb8c4 transparent
+}
+.canvas-bar{
+  position:sticky;top:0;z-index:20;height:58px;padding:0 14px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:rgba(248,250,252,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(16px)
+}
+.device-tabs{padding:3px;border-radius:10px;box-shadow:none}
+.device-tabs button{padding:7px 12px;min-height:32px}
+.canvas-tools{margin-left:0;gap:7px}
+.mode-button{min-height:34px;border-radius:9px;padding:7px 10px}
+.free-move-hint{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.stage{padding:30px 32px 72px;align-items:flex-start}
+.canvas{
+  position:relative;width:100%;max-width:1040px;min-height:640px;
+  border:1px solid rgba(91,108,126,.16);border-radius:12px;
+  box-shadow:0 16px 45px rgba(44,58,74,.11);overflow:hidden;background:#fff;
+  transition:max-width .18s ease,box-shadow .18s ease
+}
+.canvas.tablet{max-width:760px}.canvas.mobile{max-width:390px}
+.canvas:empty{display:grid;place-items:center}
+.canvas:empty::before{
+  content:"Your page is empty\A Add a section, heading, text, image or button to start building.";
+  white-space:pre-line;text-align:center;line-height:1.65;color:#8a96a5;font-size:13px;
+  padding:28px 34px;border:1px dashed #d7dfe7;border-radius:14px;background:#fafcfd;
+  max-width:390px
+}
+.site-section{padding:64px 52px}
+.hero{padding:78px 56px}
+.hero h1{font-size:clamp(42px,5vw,60px)}
+
+/* Inspector */
+.right .panel{min-height:100%}
+#inspector.empty{padding:14px;border:1px dashed var(--line-strong);border-radius:10px;background:var(--paper-2);color:var(--muted)}
+.inspector-note{border-radius:10px}
+
+/* Dark workspace should feel like one editor, not three black columns */
+body[data-app-theme="dark"] .center{
+  background-color:#0c1219;
+  background-image:radial-gradient(circle,rgba(145,165,188,.12) 1px,transparent 1px)
+}
+body[data-app-theme="dark"] .canvas-bar{background:rgba(18,24,33,.94)}
+body[data-app-theme="dark"] .canvas{
+  border-color:#2a3542;box-shadow:0 18px 55px rgba(0,0,0,.34)
+}
+body[data-app-theme="dark"] .canvas:empty::before{
+  background:#f7f9fb;color:#738092;border-color:#d5dde5
+}
+body[data-app-theme="dark"] #inspector.empty{background:#151d27;border-color:#2d3947;color:#94a0ae}
+body[data-app-theme="dark"] .block{box-shadow:none}
+body[data-app-theme="dark"] .top-button.primary{color:#fff}
+
+/* Focus theme canvas area */
+body[data-app-theme="focus"] .center{
+  background-color:#f6f2fb;
+  background-image:radial-gradient(circle,rgba(118,91,174,.13) 1px,transparent 1px)
+}
+
+/* Smaller desktop windows */
+@media(max-width:1180px){
+  :root{--shell-sidebar:216px;--shell-inspector:260px}
+  .top-button{padding:8px 9px}.user-chip{display:none}
+  .free-move-hint{display:none}
+  .stage{padding-left:20px;padding-right:20px}
+}
+@media(max-width:920px){
+  .workspace{grid-template-columns:200px minmax(320px,1fr)}
+  .right{display:none}
+  .topbar{padding:0 12px}.brand{flex-basis:205px}.brand-tagline{display:none}
+  .top-actions #downloadBtn{display:none}
+  .stage{padding:18px 14px 56px}
+}
+@media(max-width:700px){
+  body{overflow:auto}.app{height:auto;min-height:100vh}
+  .workspace{display:block}.left{display:none}.right{display:none}.center{min-height:calc(100vh - var(--shell-top))}
+  .top-center{display:none}.top-actions #saveBtn,.top-actions #signOutBtn{display:none}
+  .project-name{max-width:34vw}
+  .canvas-bar{justify-content:flex-start;overflow-x:auto}
+  .stage{padding:14px 10px 48px}.canvas{min-height:560px;border-radius:9px}
+}
+</style>
+
+
+<style id="siteflow-100x-visual-redesign">
+/* =========================================================
+   SiteFlow — premium visual system v3
+   Final override layer: deliberately replaces older shell styling.
+   ========================================================= */
+:root{
+  --sf-bg:#f3f6fa;
+  --sf-panel:rgba(255,255,255,.94);
+  --sf-panel-solid:#ffffff;
+  --sf-panel-soft:#f8fafc;
+  --sf-text:#172033;
+  --sf-text-2:#526176;
+  --sf-text-3:#8a97a8;
+  --sf-border:#e3e9f1;
+  --sf-border-strong:#d4dce7;
+  --sf-accent:#5b78ff;
+  --sf-accent-2:#7c5cff;
+  --sf-accent-soft:#eef2ff;
+  --sf-success:#25b79f;
+  --sf-danger:#e15f6f;
+  --sf-shadow-xs:0 1px 2px rgba(25,38,58,.04);
+  --sf-shadow-sm:0 5px 16px rgba(25,38,58,.06);
+  --sf-shadow-md:0 14px 38px rgba(25,38,58,.10);
+  --sf-shadow-lg:0 24px 70px rgba(25,38,58,.14);
+  --sf-radius-sm:10px;
+  --sf-radius:14px;
+  --sf-radius-lg:18px;
+  --sf-top:72px;
+  --sf-left:250px;
+  --sf-right:300px;
+}
+
+html,body{background:var(--sf-bg)}
+body{
+  color:var(--sf-text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:-.005em;
+}
+.app{grid-template-rows:var(--sf-top) minmax(0,1fr)}
+
+/* ---------- Header ---------- */
+.topbar{
+  height:var(--sf-top)!important;
+  padding:0 18px 0 20px!important;
+  background:rgba(255,255,255,.88)!important;
+  border-bottom:1px solid rgba(212,220,231,.85)!important;
+  backdrop-filter:blur(22px) saturate(150%);
+  box-shadow:0 1px 0 rgba(255,255,255,.8),0 8px 30px rgba(25,38,58,.035)!important;
+}
+.brand{gap:11px;flex:0 1 265px}
+.logo{
+  width:44px!important;height:44px!important;border-radius:13px!important;
+  border:1px solid rgba(220,226,236,.85)!important;
+  box-shadow:0 7px 18px rgba(31,46,72,.08)!important;
+  background:#fff!important;
+}
+.project-name{
+  width:168px!important;height:30px!important;margin-left:-5px!important;
+  font-size:18px!important;font-weight:800!important;letter-spacing:-.04em!important;
+  color:var(--sf-text)!important;
+}
+.brand-tagline{font-size:9.5px!important;color:var(--sf-text-3)!important;letter-spacing:.015em}
+.top-center{
+  background:rgba(248,250,252,.9)!important;border:1px solid var(--sf-border)!important;
+  border-radius:12px!important;padding:4px!important;box-shadow:var(--sf-shadow-xs)!important;
+}
+.icon-button,.top-button{
+  min-height:38px!important;border-radius:10px!important;font-size:12px!important;
+  font-weight:750!important;transition:background .16s ease,border-color .16s ease,transform .16s ease,box-shadow .16s ease!important;
+}
+.icon-button:hover,.top-button:hover{transform:translateY(-1px)}
+.icon-button{color:var(--sf-text-2)!important}
+.icon-button:hover{background:#fff!important;box-shadow:var(--sf-shadow-xs)!important;color:var(--sf-text)!important}
+.top-actions{gap:7px!important}
+.top-button{
+  background:rgba(255,255,255,.92)!important;border:1px solid var(--sf-border)!important;
+  color:var(--sf-text-2)!important;box-shadow:var(--sf-shadow-xs)!important;
+}
+.top-button:hover{border-color:var(--sf-border-strong)!important;background:#fff!important;box-shadow:var(--sf-shadow-sm)!important}
+.top-button.primary{
+  background:linear-gradient(135deg,var(--sf-accent),var(--sf-accent-2))!important;
+  border-color:transparent!important;color:#fff!important;
+  box-shadow:0 8px 20px rgba(91,120,255,.22)!important;
+}
+.top-button.primary:hover{box-shadow:0 11px 26px rgba(91,120,255,.30)!important}
+.user-chip{
+  height:39px!important;border-radius:11px!important;background:rgba(255,255,255,.9)!important;
+  border:1px solid var(--sf-border)!important;box-shadow:var(--sf-shadow-xs)!important;color:var(--sf-text-2)!important;
+}
+.user-avatar{background:linear-gradient(135deg,#63d5d1,#7a72f1)!important}
+
+/* ---------- Workspace ---------- */
+.workspace{grid-template-columns:var(--sf-left) minmax(420px,1fr) var(--sf-right)!important;background:var(--sf-bg)}
+.left,.right{
+  background:var(--sf-panel-solid)!important;
+  border-color:var(--sf-border)!important;
+  scrollbar-width:thin;scrollbar-color:#cfd7e2 transparent;
+}
+.panel{padding:18px!important;border-color:var(--sf-border)!important}
+.panel-title{
+  color:var(--sf-text-3)!important;font-size:10px!important;font-weight:850!important;
+  letter-spacing:.13em!important;margin-bottom:13px!important;
+}
+.panel-title-row{margin-bottom:11px!important}
+.mini-button{
+  border-radius:9px!important;background:var(--sf-panel-soft)!important;border:1px solid var(--sf-border)!important;
+  color:var(--sf-text-2)!important;font-size:11px!important;font-weight:780!important;
+}
+.mini-button:hover{background:#fff!important;border-color:var(--sf-border-strong)!important;box-shadow:var(--sf-shadow-xs)!important}
+
+/* Pages */
+.page-list{gap:6px!important}
+.page-row{
+  min-height:43px!important;padding:9px 10px!important;border-radius:11px!important;
+  color:var(--sf-text-2)!important;transition:.16s ease!important;
+}
+.page-row:hover{background:#f7f9fc!important;transform:translateX(2px)}
+.page-row.active{
+  background:linear-gradient(90deg,#eef3ff,#f7f9ff)!important;
+  border-color:#dce5ff!important;color:#435fcf!important;box-shadow:inset 3px 0 0 #627cff!important;
+}
+.page-row.active .page-dot{background:#627cff!important;box-shadow:0 0 0 4px rgba(98,124,255,.10)}
+.page-name{font-size:12.5px!important;font-weight:760!important}
+
+/* Add blocks */
+.block-grid{grid-template-columns:1fr!important;gap:7px!important}
+.block{
+  min-height:52px!important;padding:9px 10px!important;display:flex!important;align-items:center!important;gap:11px!important;
+  border-radius:11px!important;background:#fff!important;border:1px solid var(--sf-border)!important;
+  color:var(--sf-text-2)!important;box-shadow:none!important;transition:.16s ease!important;
+}
+.block:hover{
+  transform:translateY(-1px) translateX(1px)!important;border-color:#cfd9ea!important;
+  background:#fbfcff!important;box-shadow:var(--sf-shadow-sm)!important;
+}
+.block .block-icon{
+  width:31px!important;height:31px!important;margin:0!important;border-radius:9px!important;
+  background:linear-gradient(145deg,#f7f9fc,#eef2f7)!important;color:#5d6d84!important;
+  border:1px solid #e7ebf1!important;
+}
+.block strong{font-size:12px!important;font-weight:760!important;color:#39465a!important}
+
+/* Layers */
+.layers{gap:4px!important}
+.layer{
+  min-height:36px!important;border-radius:9px!important;color:var(--sf-text-2)!important;
+  transition:.14s ease!important;
+}
+.layer:hover{background:#f7f9fc!important;border-color:var(--sf-border)!important}
+.layer.active{background:#eef3ff!important;border-color:#dce5ff!important;color:#435fcf!important}
+
+/* ---------- Canvas / builder ---------- */
+.center{
+  background-color:#eef2f7!important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.52) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.52) 1px,transparent 1px)!important;
+  background-size:24px 24px!important;
+  scrollbar-color:#bcc6d2 transparent!important;
+}
+.canvas-bar{
+  height:60px!important;padding:0 14px!important;gap:10px!important;
+  background:rgba(247,249,252,.88)!important;border-bottom:1px solid rgba(215,223,233,.9)!important;
+  backdrop-filter:blur(18px) saturate(140%)!important;
+}
+.device-tabs{
+  padding:4px!important;border:1px solid var(--sf-border)!important;background:rgba(255,255,255,.9)!important;
+  border-radius:12px!important;box-shadow:var(--sf-shadow-xs)!important;
+}
+.device-tabs button{
+  min-height:32px!important;padding:7px 13px!important;border-radius:8px!important;color:#7b8798!important;
+  transition:.16s ease!important;
+}
+.device-tabs button:hover{background:#f3f6fa!important;color:#4c5a6d!important}
+.device-tabs button.active{
+  background:linear-gradient(180deg,#eef3ff,#e7edff)!important;color:#435fcf!important;
+  box-shadow:inset 0 0 0 1px #d7e1ff!important;
+}
+.canvas-tools{gap:8px!important}
+.mode-button{
+  min-height:36px!important;border-radius:10px!important;padding:8px 12px!important;
+  background:rgba(255,255,255,.9)!important;border:1px solid var(--sf-border)!important;
+  color:#66758a!important;box-shadow:var(--sf-shadow-xs)!important;transition:.16s ease!important;
+}
+.mode-button:hover{transform:translateY(-1px);background:#fff!important;box-shadow:var(--sf-shadow-sm)!important}
+.mode-button.active{
+  background:linear-gradient(135deg,#eef3ff,#f4f0ff)!important;
+  border-color:#cfd8ff!important;color:#516be5!important;
+  box-shadow:0 0 0 3px rgba(91,120,255,.10)!important;
+}
+.free-move-hint{color:#8b98aa!important;font-size:10.5px!important}
+.stage{padding:34px 34px 82px!important}
+.canvas{
+  max-width:1040px!important;min-height:640px!important;border-radius:16px!important;
+  border:1px solid rgba(205,214,225,.96)!important;background:#fff!important;
+  box-shadow:0 1px 2px rgba(33,45,62,.04),0 22px 60px rgba(33,45,62,.14)!important;
+  overflow:hidden!important;
+}
+.canvas.tablet{max-width:760px!important}.canvas.mobile{max-width:390px!important}
+.canvas:empty::before{
+  color:#8491a3!important;background:rgba(250,252,255,.96)!important;
+  border:1px dashed #cfd8e5!important;border-radius:16px!important;
+  box-shadow:0 8px 26px rgba(39,52,72,.06)!important;
+}
+.site-section{padding:66px 54px!important}
+.site-section:hover{border-color:rgba(91,120,255,.24)!important}
+.site-section.selected{border-color:#6d82ee!important;box-shadow:inset 0 0 0 1px rgba(109,130,238,.14)!important}
+.element{border-radius:8px!important}
+.element:hover{border-color:rgba(91,120,255,.25)!important}
+.element.selected{outline-color:#687df0!important;outline-offset:4px!important}
+.drag-handle{background:#556bdc!important;border-radius:7px!important;box-shadow:0 5px 14px rgba(66,84,180,.22)!important}
+.cta{
+  background:linear-gradient(135deg,#5b78ff,#755cf5)!important;
+  border-radius:11px!important;box-shadow:0 9px 22px rgba(91,120,255,.22)!important;
+}
+.hero{
+  background:radial-gradient(circle at 88% 12%,rgba(111,211,199,.12),transparent 28%),
+             radial-gradient(circle at 16% 90%,rgba(113,96,235,.08),transparent 32%),
+             linear-gradient(135deg,#ffffff,#f9fbff 58%,#fffaf8)!important;
+}
+.hero h1{letter-spacing:-.045em!important;color:#162033!important}
+.hero p{color:#667389!important}
+
+/* ---------- Inspector ---------- */
+.right .panel{min-height:100%!important}
+#inspector.empty{
+  padding:15px!important;border-radius:12px!important;background:#f8fafc!important;
+  border:1px dashed #d5dde8!important;color:#8794a5!important;
+}
+.field{margin-bottom:15px!important}
+.field label{color:#8b97a8!important;font-size:9.5px!important;letter-spacing:.10em!important}
+.field input,.field textarea,.field select{
+  border-radius:10px!important;border:1px solid var(--sf-border)!important;
+  background:#fff!important;color:#2e3b4e!important;padding:10px 11px!important;
+  box-shadow:inset 0 1px 1px rgba(27,40,60,.02)!important;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:#9bafff!important;box-shadow:0 0 0 3px rgba(91,120,255,.10)!important;
+}
+.move-buttons button,.position-row button{
+  border-radius:10px!important;border:1px solid var(--sf-border)!important;background:#fff!important;
+  color:#536176!important;transition:.15s ease!important;
+}
+.move-buttons button:hover,.position-row button:hover{background:#f7f9fc!important;border-color:#d2dbe7!important}
+.inspector-note{background:#f7f9fc!important;border-color:var(--sf-border)!important;color:#718096!important}
+.danger{border-radius:10px!important;background:#fff8f9!important;border-color:#f0d8dd!important;color:#c45968!important}
+
+/* ---------- Auth ---------- */
+.auth-clean{
+  background:
+    radial-gradient(circle at 10% 5%,rgba(87,120,255,.14),transparent 30%),
+    radial-gradient(circle at 92% 90%,rgba(67,199,184,.12),transparent 34%),
+    #f3f6fa!important;
+}
+.auth-card{
+  border-radius:24px!important;border:1px solid rgba(218,226,236,.9)!important;
+  box-shadow:0 30px 90px rgba(35,49,70,.14)!important;overflow:hidden!important;
+}
+.auth-left{
+  background:
+    radial-gradient(circle at 20% 18%,rgba(255,255,255,.18),transparent 22%),
+    linear-gradient(145deg,#273451,#38496d 52%,#4c5a80)!important;
+}
+.auth-copy h1{letter-spacing:-.055em!important}
+.auth-copy h1 em{color:#8ee2d6!important}
+.auth-pill{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.11)!important;backdrop-filter:blur(8px)}
+.auth-right{background:rgba(255,255,255,.97)!important}
+.auth-tab.active{color:#516be5!important}
+.auth-submit{
+  background:linear-gradient(135deg,#5b78ff,#755cf5)!important;border-radius:11px!important;
+  box-shadow:0 9px 22px rgba(91,120,255,.20)!important;
+}
+.auth-submit:hover{filter:brightness(1.03)}
+
+/* ---------- Onboarding ---------- */
+.onboarding{
+  background:
+    radial-gradient(circle at 12% 10%,rgba(91,120,255,.11),transparent 28%),
+    radial-gradient(circle at 88% 88%,rgba(67,199,184,.10),transparent 30%),
+    #f4f6fa!important;
+}
+.onboard-card{border-radius:24px!important;border-color:#dfe6ef!important;box-shadow:0 30px 90px rgba(36,50,72,.15)!important}
+.onboard-kicker{color:#6078e8!important}
+.onboard-head h2{color:#1d2738!important;letter-spacing:-.045em!important}
+.onboard-progress span.active{background:linear-gradient(90deg,#5b78ff,#7a63ef)!important}
+.choice{border-radius:14px!important;border-color:#e1e7ef!important;transition:.16s ease!important}
+.choice:hover{transform:translateY(-2px)!important;border-color:#cfd8e7!important;box-shadow:var(--sf-shadow-sm)!important}
+.choice.selected{border-color:#aebcff!important;background:#f1f4ff!important;box-shadow:0 0 0 3px rgba(91,120,255,.09)!important}
+.onboard-actions .next{background:linear-gradient(135deg,#5b78ff,#755cf5)!important;border-color:transparent!important}
+.vibe-preview{border-radius:12px!important;height:64px!important}
+
+/* =========================================================
+   DARK — rich navy, not flat black
+   ========================================================= */
+body[data-app-theme="dark"]{
+  --sf-bg:#0d121b;--sf-panel:#121925;--sf-panel-solid:#111823;--sf-panel-soft:#171f2c;
+  --sf-text:#eef3fb;--sf-text-2:#a6b2c3;--sf-text-3:#718096;
+  --sf-border:#253142;--sf-border-strong:#334157;--sf-accent:#7793ff;--sf-accent-2:#9177ff;
+  --bg:#0d121b;--paper:#111823;--paper-2:#171f2c;--ink:#eef3fb;--muted:#98a7ba;--line:#253142;--line-strong:#334157;
+}
+body[data-app-theme="dark"] .topbar{
+  background:rgba(16,23,34,.90)!important;border-color:#253142!important;box-shadow:0 1px 0 rgba(255,255,255,.02)!important;
+}
+body[data-app-theme="dark"] .left,body[data-app-theme="dark"] .right{background:#111823!important;border-color:#253142!important}
+body[data-app-theme="dark"] .top-center,body[data-app-theme="dark"] .device-tabs,
+body[data-app-theme="dark"] .top-button,body[data-app-theme="dark"] .user-chip,
+body[data-app-theme="dark"] .mode-button,body[data-app-theme="dark"] .mini-button,
+body[data-app-theme="dark"] .block{background:#171f2c!important;border-color:#293649!important;color:#aab7c8!important}
+body[data-app-theme="dark"] .project-name,body[data-app-theme="dark"] .block strong{color:#eef3fb!important}
+body[data-app-theme="dark"] .icon-button:hover,body[data-app-theme="dark"] .top-button:hover,body[data-app-theme="dark"] .block:hover{background:#1c2634!important}
+body[data-app-theme="dark"] .page-row.active{background:linear-gradient(90deg,#1a2945,#182238)!important;border-color:#2b4169!important;color:#9bb5ff!important;box-shadow:inset 3px 0 0 #7b95ff!important}
+body[data-app-theme="dark"] .center{
+  background-color:#0b1119!important;
+  background-image:linear-gradient(rgba(72,88,109,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(72,88,109,.15) 1px,transparent 1px)!important;
+}
+body[data-app-theme="dark"] .canvas-bar{background:rgba(15,22,32,.90)!important;border-color:#253142!important}
+body[data-app-theme="dark"] .canvas{border-color:#2d394a!important;box-shadow:0 24px 70px rgba(0,0,0,.42)!important}
+body[data-app-theme="dark"] #inspector.empty,body[data-app-theme="dark"] .inspector-note{background:#171f2c!important;border-color:#2a3749!important;color:#95a4b7!important}
+body[data-app-theme="dark"] .field input,body[data-app-theme="dark"] .field textarea,body[data-app-theme="dark"] .field select{background:#171f2c!important;color:#e8eef7!important;border-color:#2a3749!important}
+body[data-app-theme="dark"] .move-buttons button,body[data-app-theme="dark"] .position-row button{background:#171f2c!important;color:#a8b5c6!important;border-color:#2a3749!important}
+body[data-app-theme="dark"] .device-tabs button.active,body[data-app-theme="dark"] .mode-button.active{background:#243255!important;color:#a9bbff!important;border-color:#3b4f7e!important}
+
+/* =========================================================
+   FOCUS / THIRD VIBE — redesigned from scratch.
+   Warm graphite + mist lavender + subtle glass, no purple wash.
+   ========================================================= */
+body[data-app-theme="focus"]{
+  --sf-bg:#eeeff4;
+  --sf-panel:#f8f8fb;
+  --sf-panel-solid:#f7f7fa;
+  --sf-panel-soft:#f1f2f6;
+  --sf-text:#252735;
+  --sf-text-2:#626777;
+  --sf-text-3:#9296a4;
+  --sf-border:#dedfe7;
+  --sf-border-strong:#cfd1dc;
+  --sf-accent:#6c63d9;
+  --sf-accent-2:#8b66d5;
+  --sf-accent-soft:#eeecfb;
+  --bg:#eeeff4;--paper:#f7f7fa;--paper-2:#f1f2f6;--ink:#252735;--muted:#737887;--line:#dedfe7;--line-strong:#cfd1dc;
+  --peach:#7770dc;--peach-strong:#675fd0;
+}
+body[data-app-theme="focus"] .topbar{
+  background:rgba(247,247,250,.90)!important;
+  border-bottom-color:#d9dae3!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.85),0 8px 30px rgba(53,50,73,.04)!important;
+}
+body[data-app-theme="focus"] .left,body[data-app-theme="focus"] .right{
+  background:#f7f7fa!important;border-color:#dedfe7!important;
+}
+body[data-app-theme="focus"] .logo{border-color:#dedfe7!important;box-shadow:0 7px 18px rgba(68,62,98,.08)!important}
+body[data-app-theme="focus"] .top-center,
+body[data-app-theme="focus"] .top-button,
+body[data-app-theme="focus"] .user-chip,
+body[data-app-theme="focus"] .device-tabs,
+body[data-app-theme="focus"] .mode-button,
+body[data-app-theme="focus"] .mini-button,
+body[data-app-theme="focus"] .block{
+  background:rgba(255,255,255,.72)!important;
+  border-color:#dedfe7!important;
+  color:#626777!important;
+  box-shadow:0 1px 2px rgba(42,40,58,.03)!important;
+}
+body[data-app-theme="focus"] .top-button:hover,
+body[data-app-theme="focus"] .mini-button:hover,
+body[data-app-theme="focus"] .block:hover,
+body[data-app-theme="focus"] .icon-button:hover{
+  background:#fff!important;border-color:#d0d2dd!important;
+  box-shadow:0 7px 18px rgba(47,45,65,.07)!important;
+}
+body[data-app-theme="focus"] .top-button.primary,
+body[data-app-theme="focus"] .auth-submit{
+  background:linear-gradient(135deg,#6964d8,#8b67d4)!important;
+  border-color:transparent!important;color:#fff!important;
+  box-shadow:0 8px 20px rgba(105,100,216,.20)!important;
+}
+body[data-app-theme="focus"] .page-row.active{
+  background:linear-gradient(90deg,#ecebf8,#f4f3fb)!important;
+  border-color:#dcd9f1!important;color:#5f59b9!important;
+  box-shadow:inset 3px 0 0 #7770d9!important;
+}
+body[data-app-theme="focus"] .page-row.active .page-dot{background:#7770d9!important;box-shadow:0 0 0 4px rgba(119,112,217,.10)!important}
+body[data-app-theme="focus"] .block .block-icon{background:linear-gradient(145deg,#f5f5f8,#ececf2)!important;border-color:#e1e1e9!important;color:#6e7180!important}
+body[data-app-theme="focus"] .center{
+  background-color:#e9eaf0!important;
+  background-image:
+    radial-gradient(circle at 50% 0%,rgba(255,255,255,.78),transparent 38%),
+    linear-gradient(rgba(113,112,133,.075) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(113,112,133,.075) 1px,transparent 1px)!important;
+  background-size:auto,26px 26px,26px 26px!important;
+}
+body[data-app-theme="focus"] .canvas-bar{
+  background:rgba(242,242,246,.88)!important;border-color:#d9dae3!important;
+  box-shadow:0 8px 24px rgba(50,48,67,.035)!important;
+}
+body[data-app-theme="focus"] .device-tabs button.active,
+body[data-app-theme="focus"] .mode-button.active{
+  background:linear-gradient(180deg,#ecebfa,#e5e3f7)!important;
+  color:#625bc4!important;border-color:#d4d0ef!important;
+  box-shadow:inset 0 0 0 1px rgba(113,105,210,.08),0 0 0 3px rgba(111,103,206,.07)!important;
+}
+body[data-app-theme="focus"] .canvas{
+  border-color:#cfd1db!important;
+  box-shadow:0 1px 2px rgba(45,43,60,.04),0 26px 72px rgba(45,43,60,.15)!important;
+}
+body[data-app-theme="focus"] #inspector.empty,
+body[data-app-theme="focus"] .inspector-note{
+  background:#f1f2f6!important;border-color:#dbdce5!important;color:#7b7f8d!important;
+}
+body[data-app-theme="focus"] .field input,
+body[data-app-theme="focus"] .field textarea,
+body[data-app-theme="focus"] .field select{
+  background:rgba(255,255,255,.78)!important;border-color:#dadce5!important;color:#363846!important;
+}
+body[data-app-theme="focus"] .field input:focus,
+body[data-app-theme="focus"] .field textarea:focus,
+body[data-app-theme="focus"] .field select:focus{
+  border-color:#aaa5e3!important;box-shadow:0 0 0 3px rgba(111,103,206,.09)!important;
+}
+body[data-app-theme="focus"] .move-buttons button,
+body[data-app-theme="focus"] .position-row button{background:rgba(255,255,255,.72)!important;border-color:#dadce5!important;color:#666a78!important}
+body[data-app-theme="focus"] .layer.active{background:#ecebf8!important;border-color:#dbd8ef!important;color:#625bc0!important}
+body[data-app-theme="focus"] .panel-title{color:#9296a4!important}
+body[data-app-theme="focus"] .free-move-hint{color:#878b98!important}
+
+/* Third vibe preview should match the real theme */
+.vibe-focus{
+  background:
+    linear-gradient(90deg,#f7f7fa 0 28%,#e9eaf0 28% 74%,#f7f7fa 74%)!important;
+  color:#655fc1!important;border-color:#d7d7e1!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)!important;
+}
+
+/* ---------- Responsive ---------- */
+@media(max-width:1240px){
+  :root{--sf-left:224px;--sf-right:270px}
+  .brand{flex-basis:230px}.user-chip{display:none}.free-move-hint{display:none}
+  .stage{padding-left:22px!important;padding-right:22px!important}
+}
+@media(max-width:980px){
+  .workspace{grid-template-columns:205px minmax(330px,1fr)!important}
+  .right{display:none!important}.brand{flex-basis:210px}.brand-tagline{display:none}
+  .stage{padding:20px 14px 62px!important}
+}
+@media(max-width:720px){
+  .topbar{padding:0 11px!important}.logo{width:40px!important;height:40px!important}
+  .project-name{font-size:16px!important;max-width:36vw!important}
+  .canvas-bar{justify-content:flex-start!important;overflow-x:auto!important}
+  .stage{padding:14px 9px 48px!important}.canvas{border-radius:12px!important;min-height:560px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .block,.page-row,.top-button,.icon-button,.mode-button,.choice{transition:none!important;transform:none!important}
+}
+</style>
+
+
+<style id="siteflow-adaptive-logo-theme">
+/* Adaptive logo surfaces for every SiteFlow interface vibe */
+:root{
+  --sf-logo-bg:linear-gradient(145deg,#ffffff 0%,#f4f7fb 100%);
+  --sf-logo-border:rgba(211,220,232,.9);
+  --sf-logo-shadow:0 8px 22px rgba(28,42,65,.09),inset 0 1px 0 rgba(255,255,255,.9);
+}
+body[data-app-theme="dark"]{
+  --sf-logo-bg:linear-gradient(145deg,#242b38 0%,#171d27 100%);
+  --sf-logo-border:rgba(255,255,255,.10);
+  --sf-logo-shadow:0 9px 24px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06);
+}
+body[data-app-theme="focus"]{
+  --sf-logo-bg:linear-gradient(145deg,#f5f3ff 0%,#e8e7f2 100%);
+  --sf-logo-border:rgba(108,99,217,.18);
+  --sf-logo-shadow:0 9px 22px rgba(70,63,125,.12),inset 0 1px 0 rgba(255,255,255,.72);
+}
+.logo{
+  background:var(--sf-logo-bg)!important;
+  border:1px solid var(--sf-logo-border)!important;
+  box-shadow:var(--sf-logo-shadow)!important;
+  padding:3px!important;
+  transition:background .22s ease,border-color .22s ease,box-shadow .22s ease!important;
+}
+.logo img{
+  width:100%!important;height:100%!important;object-fit:contain!important;
+  border-radius:10px!important;
+}
+.auth-brand img{
+  width:58px!important;height:58px!important;
+  box-sizing:border-box;
+  padding:4px!important;
+  border-radius:16px!important;
+  background:var(--sf-logo-bg)!important;
+  border:1px solid var(--sf-logo-border)!important;
+  box-shadow:var(--sf-logo-shadow)!important;
+  transition:background .22s ease,border-color .22s ease,box-shadow .22s ease!important;
+}
+</style>
+
+<style id="siteflow-ultimate-upgrade">
+/* SiteFlow Ultimate Editor upgrade */
+.left{width:auto}.workspace{grid-template-columns:280px minmax(420px,1fr) 320px}
+.panel{padding:14px}.panel-title{color:#7a8597}.panel-title-row{gap:8px}
+.element-search{width:100%;height:36px;border:1px solid #e4e9f0;border-radius:10px;background:#f8fafc;padding:0 11px;outline:none;margin:0 0 10px;color:#273244}.element-search:focus{border-color:#9cadff;box-shadow:0 0 0 3px rgba(91,120,255,.10);background:white}
+.element-category{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#a0a9b7;margin:13px 2px 7px}
+.block-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}.block{min-height:64px!important;padding:10px!important;border-radius:12px!important;display:flex!important;align-items:center!important;gap:9px!important}.block .block-icon{width:31px!important;height:31px!important;margin:0!important;flex:0 0 auto;font-size:13px;font-weight:900;background:#f1f4ff!important;color:#596ed5!important}.block strong{font-size:11px!important;line-height:1.15}.block.hidden-by-search,.element-category.hidden-by-search{display:none!important}
+.canvas-bar{justify-content:space-between!important;padding:0 14px;gap:10px}.canvas-tools{display:flex;align-items:center;gap:8px}.mode-button{border:1px solid #dfe5ee;background:#fff;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:850;color:#5d6879}.mode-button.active{background:#edf0ff;border-color:#aebaff;color:#4c60c8}.free-move-hint{font-size:10px;color:#929bac}.zoom-tools{display:flex;align-items:center;gap:5px}.zoom-tools button{border:1px solid #e1e6ed;background:#fff;border-radius:8px;width:30px;height:30px;color:#647083;font-weight:900}.zoom-readout{font-size:10px;font-weight:850;color:#778294;min-width:38px;text-align:center}.stage{transform-origin:top center}.canvas{transform-origin:top center}
+.site-section{min-height:80px}.element{min-height:6px}.element-toolbar{position:absolute;z-index:70;top:-37px;left:0;display:none;align-items:center;background:#202633;color:white;border-radius:9px;padding:4px;box-shadow:0 7px 20px rgba(20,30,45,.18);white-space:nowrap}.element.selected>.element-toolbar{display:flex}.element-toolbar button{border:0;background:transparent;color:#dbe2ee;border-radius:6px;padding:5px 7px;font-size:10px;font-weight:850}.element-toolbar button:hover{background:#343d4d;color:white}.element.selected>.drag-handle{display:none!important}
+.sf-navbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:8px 2px}.sf-brand{font-weight:900;font-size:20px}.sf-navlinks{display:flex;gap:18px;align-items:center}.sf-navlinks a{color:inherit;text-decoration:none;font-size:14px;font-weight:700}.sf-banner{padding:18px 22px;border-radius:16px;background:linear-gradient(135deg,#eef2ff,#f7f2ff);display:flex;align-items:center;justify-content:space-between;gap:18px}.sf-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#5368c9;font-size:12px;font-weight:850}.sf-divider{height:1px;background:#e8ebef;width:100%;margin:14px 0}.sf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.sf-card{border:1px solid #e7eaf0;border-radius:16px;padding:20px;background:#fff;box-shadow:0 7px 20px rgba(38,48,65,.04)}.sf-card h3{margin:0 0 8px}.sf-card p{margin:0;color:#697383;line-height:1.55}.sf-stat{text-align:center;padding:18px}.sf-stat strong{display:block;font-size:34px;letter-spacing:-.04em}.sf-stat span{color:#7b8492;font-size:13px}.sf-quote{border-left:4px solid #778cff;padding:8px 0 8px 18px;font-size:22px;line-height:1.45}.sf-testimonial{padding:24px;border-radius:18px;background:#f8f9fc}.sf-testimonial p{font-size:18px;line-height:1.6;margin-top:0}.sf-price{font-size:38px;font-weight:900;letter-spacing:-.04em}.sf-price small{font-size:13px;color:#7b8492;font-weight:600}.sf-form{display:grid;gap:10px;max-width:620px}.sf-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sf-form input,.sf-form textarea{width:100%;border:1px solid #dde3eb;border-radius:11px;padding:12px;background:#fff}.sf-form textarea{min-height:100px}.sf-gallery{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}.sf-gallery img{width:100%;height:190px;object-fit:cover;border-radius:14px}.sf-gallery img:first-child{height:390px;grid-row:span 2}.sf-video{aspect-ratio:16/9;border-radius:16px;background:#141922;display:grid;place-items:center;color:#fff;font-weight:800;overflow:hidden}.sf-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px}.sf-footer{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:28px}.sf-footer strong{display:block;margin-bottom:9px}.sf-footer a{display:block;color:inherit;opacity:.68;text-decoration:none;margin:7px 0;font-size:13px}.sf-iconbox{width:52px;height:52px;border-radius:14px;background:#eef2ff;display:grid;place-items:center;font-size:24px}.sf-list{display:grid;gap:9px}.sf-list div{display:flex;gap:10px;align-items:flex-start}.sf-list b{color:#5d72d5}.sf-marquee{overflow:hidden;border-block:1px solid #e9edf2;padding:12px 0;font-weight:850;white-space:nowrap}.sf-progress{height:10px;background:#edf0f4;border-radius:99px;overflow:hidden}.sf-progress span{display:block;height:100%;width:68%;background:#697ee5;border-radius:inherit}.sf-faq details{border-bottom:1px solid #e8ebef;padding:14px 0}.sf-faq summary{font-weight:850;cursor:pointer}.sf-socials{display:flex;gap:9px}.sf-socials a{width:38px;height:38px;border-radius:10px;border:1px solid #e2e7ee;display:grid;place-items:center;text-decoration:none;color:inherit;font-weight:900}
+.inspector-tabs{display:flex;gap:4px;padding:4px;background:#f4f6f9;border-radius:10px;margin-bottom:14px}.inspector-tabs button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px;font-size:10px;font-weight:850;color:#7b8595}.inspector-tabs button.active{background:#fff;color:#485568;box-shadow:0 2px 7px rgba(30,40,55,.07)}.range-row{display:grid;grid-template-columns:1fr 50px;gap:8px;align-items:center}.inspector-note{font-size:11px!important;line-height:1.5!important;background:#f7f8fb;border:1px solid #e8ebf0;border-radius:10px;padding:9px;color:#758092;margin-bottom:12px}.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}.quick-actions button{border:1px solid #e2e7ee;background:#fff;border-radius:8px;padding:8px 4px;font-size:10px;font-weight:850;color:#627084}.quick-actions button:hover{background:#f6f8fb}.right .panel{position:sticky;top:0}.canvas.mobile .sf-grid,.canvas.mobile .sf-columns,.canvas.mobile .sf-footer,.canvas.mobile .sf-form-row,.canvas.mobile .sf-gallery{grid-template-columns:1fr}.canvas.mobile .sf-gallery img,.canvas.mobile .sf-gallery img:first-child{height:190px;grid-row:auto}.canvas.mobile .sf-navlinks{display:none}.canvas.tablet .sf-grid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:1120px){.workspace{grid-template-columns:250px 1fr 290px}}
+</style>
+</head>
+<body>
+
+<style id="verification-code-styles">
+.verify-screen{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 18% 18%,rgba(108,222,220,.18),transparent 28%),radial-gradient(circle at 82% 22%,rgba(255,161,136,.15),transparent 26%),radial-gradient(circle at 55% 80%,rgba(190,171,247,.16),transparent 30%),var(--auth-page,#f8fafc)}
+.verify-screen.show{display:flex}.verify-card{width:min(470px,96vw);padding:34px;border:1px solid var(--auth-border,#e3e8ed);border-radius:24px;background:var(--auth-surface,#fff);color:var(--auth-text,#18212b);box-shadow:0 28px 80px rgba(35,48,64,.14);text-align:center}.verify-icon{width:58px;height:58px;margin:0 auto 18px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(67,201,198,.16),rgba(150,126,238,.16));border:1px solid var(--auth-border,#e3e8ed);font-size:25px}.verify-card h2{margin:0 0 8px;font-size:29px;letter-spacing:-.04em}.verify-copy{margin:0 auto 22px;color:var(--auth-muted,#74808d);line-height:1.55;max-width:390px}.verify-email{font-weight:850;color:var(--auth-text,#18212b)}.code-inputs{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin:18px 0 14px}.code-input{width:100%;min-width:0;height:58px;border:1px solid var(--auth-border,#dfe5ea);border-radius:13px;background:var(--auth-input,#fbfcfd);color:var(--auth-text,#17202a);text-align:center;font:800 23px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;outline:none;transition:border-color .15s,box-shadow .15s,transform .15s}.code-input:focus{border-color:#52bdbb;box-shadow:0 0 0 4px rgba(65,190,188,.12);transform:translateY(-1px)}.verify-error{min-height:20px;margin:3px 0 10px;color:#d34c55;font-size:12px;font-weight:750}.verify-submit{width:100%;height:48px;border:0;border-radius:12px;background:#202b38;color:#fff;font-weight:850;font-size:14px;cursor:pointer;transition:transform .15s,opacity .15s}.verify-submit:hover{transform:translateY(-1px)}.verify-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}.verify-meta{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;margin-top:15px;color:var(--auth-muted,#74808d);font-size:12px}.verify-link{border:0;background:transparent;color:#249f9d;font-weight:850;cursor:pointer;padding:4px}.verify-link:disabled{color:var(--auth-muted,#8b96a1);cursor:not-allowed}.verify-back{margin-top:12px;border:0;background:transparent;color:var(--auth-muted,#74808d);font-weight:750;cursor:pointer;padding:8px 12px}.demo-code{margin-top:18px;padding:12px 14px;border:1px solid var(--auth-border,#e3e8ed);border-radius:12px;background:var(--auth-soft,#f6f8fa);color:var(--auth-muted,#697581);font-size:12px;line-height:1.5}.demo-code strong{color:var(--auth-text,#18212b);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;letter-spacing:.12em}body[data-app-theme="dark"] .verify-screen,body[data-app-theme="focus"] .verify-screen{--auth-page:#0e141b;--auth-surface:#151d26;--auth-border:#293440;--auth-text:#eef3f7;--auth-muted:#95a2af;--auth-input:#10171f;--auth-soft:#10171f}body[data-app-theme="focus"] .verify-screen{--auth-page:#15151b;--auth-surface:#1d1c25;--auth-border:#34313f;--auth-text:#f2f0f8;--auth-muted:#aaa5b5;--auth-input:#17161d;--auth-soft:#17161d}body[data-app-theme="dark"] .verify-submit,body[data-app-theme="focus"] .verify-submit{background:#edf2f6;color:#121820}@media(max-width:520px){.verify-card{padding:27px 20px}.code-inputs{gap:6px}.code-input{height:52px;border-radius:10px;font-size:20px}}
+</style>
+
+<section id="authScreen" class="auth-clean">
+  <div class="auth-card">
+    <div class="auth-left">
+      <div class="auth-brand">
+        <img src="data:image/png;base64,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" alt="SiteFlow logo">
+        <div><strong>SiteFlow</strong><small>Build. Design. Publish.</small></div>
+      </div>
+      <div class="auth-copy">
+        <h1>Build <em>beautiful</em> sites your way.</h1>
+        <p>Create pages visually, style every detail, and export a finished site when you're ready.</p>
+      </div>
+      <div class="auth-pills">
+        <div class="auth-pill"><b>Visual editor</b>No-code building</div>
+        <div class="auth-pill"><b>Multi-page</b>Complete websites</div>
+        <div class="auth-pill"><b>Export</b>Download your work</div>
+      </div>
+    </div>
+
+    <div class="auth-right">
+      <div class="auth-box">
+        <div class="auth-tabs">
+          <button id="signInTab" class="auth-tab active" type="button">Sign in</button>
+          <button id="signUpTab" class="auth-tab" type="button">Sign up</button>
+        </div>
+
+        <div class="auth-title">
+          <h2 id="authHeading">Welcome back</h2>
+          <p id="authSubheading">Sign in to continue to your SiteFlow workspace.</p>
+        </div>
+
+        <form id="authForm" novalidate>
+          <div id="nameField" class="auth-field" hidden>
+            <label for="authName">Name</label>
+            <input id="authName" type="text" autocomplete="name" placeholder="Your name">
+          </div>
+
+          <div id="savedAccountField" class="saved-account" hidden>
+            <label for="savedAccountSelect">Saved account</label>
+            <select id="savedAccountSelect"><option value="">Choose a saved account…</option></select>
+          </div>
+
+          <div class="auth-field">
+            <label for="authEmail">Email</label>
+            <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
+          </div>
+
+          <div class="auth-field">
+            <label for="authPassword">Password</label>
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+          </div>
+
+          <div id="confirmField" class="auth-field" hidden>
+            <label for="authConfirm">Confirm password</label>
+            <input id="authConfirm" type="password" autocomplete="new-password" placeholder="Repeat your password">
+          </div>
+
+          <div id="authError" class="auth-error"></div>
+
+          <div class="auth-row">
+            <label><input id="rememberMe" type="checkbox"> Remember me</label>
+            <button id="forgotBtn" type="button">Forgot password?</button>
+          </div>
+
+          <button id="authSubmit" class="auth-submit" type="submit">Sign in</button>
+          <div class="auth-note">Your editor data is stored in this browser. Email verification is handled securely by the SiteFlow server.</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="verificationScreen" class="verify-screen" aria-labelledby="verifyTitle">
+  <div class="verify-card">
+    <div class="verify-icon" aria-hidden="true">✉</div>
+    <h2 id="verifyTitle">Check your email</h2>
+    <p class="verify-copy">We sent a 6-digit verification code to <span id="verifyEmail" class="verify-email"></span>. Enter it below to activate your account.</p>
+    <div id="codeInputs" class="code-inputs" aria-label="Six digit verification code">
+      <input class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1"><input class="code-input" inputmode="numeric" maxlength="1" aria-label="Digit 2"><input class="code-input" inputmode="numeric" maxlength="1" aria-label="Digit 3"><input class="code-input" inputmode="numeric" maxlength="1" aria-label="Digit 4"><input class="code-input" inputmode="numeric" maxlength="1" aria-label="Digit 5"><input class="code-input" inputmode="numeric" maxlength="1" aria-label="Digit 6">
+    </div>
+    <div id="verifyError" class="verify-error" aria-live="polite"></div>
+    <button id="verifySubmit" class="verify-submit" type="button">Verify & continue</button>
+    <div class="verify-meta"><span>Didn't get it?</span><button id="resendCodeBtn" class="verify-link" type="button" disabled>Resend in 30s</button></div>
+    <button id="verifyBackBtn" class="verify-back" type="button">← Change email</button>
+    <div class="demo-code" id="verificationDeliveryNote">The code will be delivered to your inbox by SiteFlow. It expires after 10 minutes.</div>
+  </div>
+</section>
+
+<section id="onboardingScreen" class="onboarding" aria-labelledby="onboardTitle">
+  <div class="onboard-card">
+    <div class="onboard-head">
+      <div class="onboard-kicker">Personalize SiteFlow</div>
+      <h2 id="onboardTitle">Set up your workspace</h2>
+      <p>Three quick choices so the editor feels right from the start.</p>
+    </div>
+    <div class="onboard-progress"><span class="active"></span><span></span><span></span></div>
+    <div class="onboard-body">
+      <div class="onboard-step active" data-step="0">
+        <h3>What are you using SiteFlow for?</h3>
+        <div class="choice-grid" data-key="purpose">
+          <button class="choice" type="button" data-value="personal"><strong>Personal projects</strong><small>Portfolios, experiments, hobbies and ideas.</small></button>
+          <button class="choice" type="button" data-value="school"><strong>School & learning</strong><small>Projects, assignments and practice builds.</small></button>
+          <button class="choice" type="button" data-value="business"><strong>Business</strong><small>Company pages, landing pages and client work.</small></button>
+          <button class="choice" type="button" data-value="community"><strong>Community / team</strong><small>Clubs, groups, servers and shared projects.</small></button>
+        </div>
+      </div>
+      <div class="onboard-step" data-step="1">
+        <h3>How big is your team?</h3>
+        <div class="choice-grid" data-key="teamSize">
+          <button class="choice" type="button" data-value="solo"><strong>Just me</strong><small>A solo workspace for your own builds.</small></button>
+          <button class="choice" type="button" data-value="2-5"><strong>2–5 people</strong><small>A small team moving quickly.</small></button>
+          <button class="choice" type="button" data-value="6-20"><strong>6–20 people</strong><small>A growing team with multiple contributors.</small></button>
+          <button class="choice" type="button" data-value="20+"><strong>20+ people</strong><small>A larger group or organisation.</small></button>
+        </div>
+      </div>
+      <div class="onboard-step" data-step="2">
+        <h3>What’s your vibe?</h3>
+        <p style="color:#7c8794;margin-top:-4px">This controls the SiteFlow editor interface, not the website you’re designing.</p>
+        <div class="choice-grid vibe-grid" data-key="vibe">
+          <button class="choice" type="button" data-value="light"><span class="vibe-preview vibe-light">Aa</span><strong>Light</strong><small>Clean, bright and familiar.</small></button>
+          <button class="choice" type="button" data-value="dark"><span class="vibe-preview vibe-dark">Aa</span><strong>Dark</strong><small>Low-glare workspace for late sessions.</small></button>
+          <button class="choice" type="button" data-value="focus"><span class="vibe-preview vibe-focus">Aa</span><strong>Studio</strong><small>Calm graphite workspace with subtle lavender accents.</small></button>
+        </div>
+      </div>
+      <div class="onboard-actions"><button id="onboardBack" type="button" disabled>Back</button><button id="onboardNext" class="next" type="button" disabled>Continue</button></div>
+    </div>
+  </div>
+</section>
+
+<div id="builderApp" class="app" style="display:none">
+  <header class="topbar">
+    <div class="brand" style="position:relative;padding-right:8px">
+      <div class="logo"><img src="data:image/png;base64,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" alt="SiteFlow logo"></div>
+      <div class="brand-meta"><input id="projectName" class="project-name" value="SiteFlow" aria-label="Project name"><span class="brand-tagline">Build · Design · Publish</span></div>
+    </div>
+
+    <div class="top-center">
+      <button id="undoBtn" class="icon-button" title="Undo" aria-label="Undo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 7 4 12l5 5"/><path d="M4 12h9a7 7 0 1 1 0 14" transform="translate(0 -7)"/></svg>
+      </button>
+      <button id="redoBtn" class="icon-button" title="Redo" aria-label="Redo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 7 5 5-5 5"/><path d="M20 12h-9a7 7 0 1 0 0 14" transform="translate(0 -7)"/></svg>
+      </button>
+      <button id="previewBtn" class="icon-button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+        Preview
+      </button>
+    </div>
+
+    <div class="top-actions"><div id="userChip" class="user-chip"><span id="userAvatar" class="user-avatar">U</span><span id="userChipText">Workspace</span></div><button id="signOutBtn" class="top-button" type="button">Sign out</button>
+      <button id="saveBtn" class="top-button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V4"/><path d="M8 21v-7h8v7"/></svg>
+        Save
+      </button>
+      <button id="downloadBtn" class="top-button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Download
+      </button>
+      <button id="publishBtn" class="top-button primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 5 8v8l7 5 7-5V8z"/><path d="M12 3v18"/></svg>
+        Publish
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="left">
+      <section class="panel">
+        <div class="panel-title-row">
+          <div class="panel-title">Pages</div>
+          <button id="addPageBtn" class="mini-button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add
+          </button>
+        </div>
+        <div id="pageList" class="page-list"></div>
+      </section>
+
+      <section class="panel" id="elementsPanel">
+        <div class="panel-title-row"><div class="panel-title">Elements</div><span style="font-size:10px;color:#a0a8b4;font-weight:800">30+</span></div>
+        <input id="elementSearch" class="element-search" placeholder="Search elements…" autocomplete="off">
+        <div class="element-category">Basics</div>
+        <div class="block-grid">
+          <button class="block" data-add="heading" data-label="heading title text"><span class="block-icon">H</span><strong>Heading</strong></button>
+          <button class="block" data-add="text" data-label="text paragraph copy"><span class="block-icon">T</span><strong>Text</strong></button>
+          <button class="block" data-add="button" data-label="button cta link"><span class="block-icon">↗</span><strong>Button</strong></button>
+          <button class="block" data-add="image" data-label="image photo picture"><span class="block-icon">▧</span><strong>Image</strong></button>
+          <button class="block" data-add="spacer" data-label="spacer space gap"><span class="block-icon">↕</span><strong>Spacer</strong></button>
+          <button class="block" data-add="divider" data-label="divider line separator"><span class="block-icon">—</span><strong>Divider</strong></button>
+          <button class="block" data-add="badge" data-label="badge pill label"><span class="block-icon">●</span><strong>Badge</strong></button>
+          <button class="block" data-add="icon" data-label="icon symbol"><span class="block-icon">✦</span><strong>Icon</strong></button>
+        </div>
+        <div class="element-category">Sections</div>
+        <div class="block-grid">
+          <button class="block" data-add="section" data-label="section blank container"><span class="block-icon">＋</span><strong>Section</strong></button>
+          <button class="block" data-add="navbar" data-label="navbar navigation header menu"><span class="block-icon">☰</span><strong>Navbar</strong></button>
+          <button class="block" data-add="banner" data-label="banner announcement promo"><span class="block-icon">▰</span><strong>Banner</strong></button>
+          <button class="block" data-add="columns" data-label="columns split layout"><span class="block-icon">Ⅱ</span><strong>Columns</strong></button>
+          <button class="block" data-add="cards" data-label="cards features services"><span class="block-icon">▦</span><strong>Cards</strong></button>
+          <button class="block" data-add="stats" data-label="stats numbers metrics"><span class="block-icon">123</span><strong>Stats</strong></button>
+          <button class="block" data-add="testimonial" data-label="testimonial review quote"><span class="block-icon">❝</span><strong>Testimonial</strong></button>
+          <button class="block" data-add="pricing" data-label="pricing plan price"><span class="block-icon">$</span><strong>Pricing</strong></button>
+          <button class="block" data-add="faq" data-label="faq accordion questions"><span class="block-icon">?</span><strong>FAQ</strong></button>
+          <button class="block" data-add="footer" data-label="footer links bottom"><span class="block-icon">⌄</span><strong>Footer</strong></button>
+        </div>
+        <div class="element-category">Media & data</div>
+        <div class="block-grid">
+          <button class="block" data-add="gallery" data-label="gallery photos images grid"><span class="block-icon">▥</span><strong>Gallery</strong></button>
+          <button class="block" data-add="video" data-label="video embed player youtube"><span class="block-icon">▶</span><strong>Video</strong></button>
+          <button class="block" data-add="form" data-label="form contact input email"><span class="block-icon">✎</span><strong>Form</strong></button>
+          <button class="block" data-add="list" data-label="list checklist benefits"><span class="block-icon">✓</span><strong>List</strong></button>
+          <button class="block" data-add="progress" data-label="progress bar meter"><span class="block-icon">▰</span><strong>Progress</strong></button>
+          <button class="block" data-add="social" data-label="social icons links"><span class="block-icon">◎</span><strong>Socials</strong></button>
+          <button class="block" data-add="marquee" data-label="marquee ticker scrolling"><span class="block-icon">↔</span><strong>Marquee</strong></button>
+          <button class="block" data-add="quote" data-label="quote pullquote"><span class="block-icon">“</span><strong>Quote</strong></button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">Layers</div>
+        <div id="layers" class="layers"></div>
+      </section>
+    </aside>
+
+    <main class="center">
+      <div class="canvas-bar">
+        <div class="device-tabs">
+          <button class="active" data-device="desktop">Desktop</button>
+          <button data-device="tablet">Tablet</button>
+          <button data-device="mobile">Mobile</button>
+        </div>
+        <div class="canvas-tools">
+          <button id="freeMoveBtn" class="mode-button" type="button" aria-pressed="false">✦ Free move</button>
+          <span id="freeMoveHint" class="free-move-hint">Move any element anywhere in its section</span>
+          <div class="zoom-tools"><button id="zoomOut" type="button">−</button><span id="zoomReadout" class="zoom-readout">100%</span><button id="zoomIn" type="button">+</button></div>
+        </div>
+      </div>
+      <div class="stage"><div id="canvas" class="canvas"></div></div>
+    </main>
+
+    <aside class="right">
+      <section class="panel">
+        <div class="panel-title">Properties</div>
+        <div id="inspector" class="empty">Select an element to edit it.</div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div id="pageModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><strong>Add a page</strong><button class="mini-button" data-close="pageModal">Close</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Page name</label><input id="newPageName" value="About"></div>
+      <div class="modal-actions">
+        <button class="top-button" data-close="pageModal">Cancel</button>
+        <button id="createPageBtn" class="top-button primary">Create page</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="publishModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-head"><strong>Ready to publish</strong><button class="mini-button" data-close="publishModal">Close</button></div>
+    <div class="modal-body">
+      <p style="margin-top:0;color:#626b75;line-height:1.6">Your site is ready. Download the finished site as one HTML file. It includes all of your pages and works without extra files.</p>
+      <div class="modal-actions">
+        <button id="publishDownloadBtn" class="top-button primary">Download site</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notice" class="notice"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const canvas = $("canvas");
+  const pageList = $("pageList");
+  const layers = $("layers");
+  const inspector = $("inspector");
+  const notice = $("notice");
+
+  let pages = [{
+    id:"home",
+    name:"Home",
+    slug:"home",
+    html:`
+      <section class="site-section hero" data-type="section">
+        <div class="element" data-type="heading"><div class="drag-handle">Reorder</div><h1>Design a website that feels yours.</h1></div>
+        <div class="element" data-type="text"><div class="drag-handle">Reorder</div><p>Build pages visually, shape every detail, and export a site you can actually use.</p></div>
+        <div class="element" data-type="button"><div class="drag-handle">Reorder</div><a class="cta" href="#page-home">Get started</a></div>
+      </section>
+      <section class="site-section section-default" data-type="section">
+        <div class="element" data-type="heading"><div class="drag-handle">Reorder</div><h2>A clean starting point</h2></div>
+        <div class="element" data-type="text"><div class="drag-handle">Reorder</div><p>Add more sections, move elements around, and edit styles from the right panel.</p></div>
+      </section>`
+  }];
+
+  let currentPageId = "home";
+  let selected = null;
+  let history = [];
+  let future = [];
+
+  function toast(msg){
+    notice.textContent = msg;
+    notice.classList.add("show");
+    clearTimeout(window.__sfToast);
+    window.__sfToast = setTimeout(()=>notice.classList.remove("show"),1800);
+  }
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    })[m]);
+  }
+
+  function slugify(s){
+    return String(s||"page").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || "page";
+  }
+
+  function currentPage(){
+    return pages.find(p=>p.id===currentPageId);
+  }
+
+  function persistCurrent(){
+    const p = currentPage();
+    if(p) p.html = canvas.innerHTML;
+  }
+
+  function saveSnapshot(){
+    persistCurrent();
+    history.push(JSON.stringify({pages,currentPageId}));
+    if(history.length > 40) history.shift();
+    future = [];
+  }
+
+  window.__siteflowSaveSnapshot = saveSnapshot;
+
+  function loadPage(id, snapshot=false, persistPrevious=true){
+    if(snapshot) saveSnapshot(); else if(persistPrevious) persistCurrent();
+    currentPageId = id;
+    selected = null;
+    const p = currentPage();
+    canvas.innerHTML = p ? p.html : "";
+    renderPages();
+    renderLayers();
+    renderInspector();
+  }
+
+  function renderPages(){
+    pageList.innerHTML = "";
+    pages.forEach((p,index)=>{
+      const row = document.createElement("div");
+      row.className = "page-row" + (p.id===currentPageId ? " active" : "");
+      row.innerHTML = `
+        <span class="page-dot"></span>
+        <span class="page-name">${esc(p.name)}</span>
+        <button class="page-more" aria-label="Page options">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+        </button>`;
+      row.querySelector(".page-name").addEventListener("click",()=>loadPage(p.id));
+      row.querySelector(".page-dot").addEventListener("click",()=>loadPage(p.id));
+      row.querySelector(".page-more").addEventListener("click",e=>{
+        e.stopPropagation();
+        const next = prompt("Rename page",p.name);
+        if(!next || !next.trim()) return;
+        saveSnapshot();
+        p.name = next.trim();
+        p.slug = slugify(next);
+        renderPages();
+        toast("Page renamed");
+      });
+      pageList.appendChild(row);
+    });
+  }
+
+  $("addPageBtn").addEventListener("click",()=>{
+    $("newPageName").value = "About";
+    $("pageModal").classList.add("show");
+    setTimeout(()=>$("newPageName").focus(),40);
+  });
+
+  $("createPageBtn").addEventListener("click",()=>{
+    const name = $("newPageName").value.trim();
+    if(!name){ toast("Enter a page name"); return; }
+    saveSnapshot();
+    const id = "page_" + Date.now();
+    pages.push({
+      id,
+      name,
+      slug:slugify(name),
+      html:`<section class="site-section section-default" data-type="section">
+        <div class="element" data-type="heading"><div class="drag-handle">Reorder</div><h1>${esc(name)}</h1></div>
+        <div class="element" data-type="text"><div class="drag-handle">Reorder</div><p>Start building this page.</p></div>
+      </section>`
+    });
+    $("pageModal").classList.remove("show");
+    loadPage(id);
+    toast("Page added");
+  });
+
+  document.querySelectorAll("[data-close]").forEach(btn=>{
+    btn.addEventListener("click",()=>$(btn.dataset.close).classList.remove("show"));
+  });
+
+  function selectElement(el){
+    document.querySelectorAll(".element,.site-section").forEach(x=>x.classList.remove("selected"));
+    selected = el;
+    if(el) el.classList.add("selected");
+    renderLayers();
+    renderInspector();
+  }
+
+  canvas.addEventListener("click",e=>{
+    const el = e.target.closest(".element") || e.target.closest(".site-section");
+    if(el && canvas.contains(el)){
+      e.preventDefault();
+      selectElement(el);
+    }
+  });
+
+  function renderLayers(){
+    layers.innerHTML = "";
+    [...canvas.children].forEach((section,si)=>{
+      const srow = document.createElement("div");
+      srow.className = "layer" + (selected===section ? " active" : "");
+      srow.innerHTML = `<span>Section ${si+1}</span><small>${section.querySelectorAll(":scope > .element").length}</small>`;
+      srow.addEventListener("click",()=>selectElement(section));
+      layers.appendChild(srow);
+
+      [...section.querySelectorAll(":scope > .element")].forEach(el=>{
+        const row = document.createElement("div");
+        row.className = "layer child" + (selected===el ? " active" : "");
+        row.innerHTML = `<span>↳ ${esc(el.dataset.type)}</span>`;
+        row.addEventListener("click",()=>selectElement(el));
+        layers.appendChild(row);
+      });
+    });
+  }
+
+  function rgbToHex(rgb){
+    const m = rgb.match(/\d+/g);
+    if(!m || m.length < 3) return "#ffffff";
+    return "#" + m.slice(0,3).map(v=>Number(v).toString(16).padStart(2,"0")).join("");
+  }
+
+  function renderInspector(){
+    if(!selected){
+      inspector.className = "empty";
+      inspector.textContent = "Select an element to edit it.";
+      return;
+    }
+    inspector.className = "";
+    const type = selected.dataset.type;
+
+    if(type==="section"){
+      inspector.innerHTML = `
+        <div class="field"><label>Background</label><input id="bgColor" type="color" value="${rgbToHex(getComputedStyle(selected).backgroundColor)}"></div>
+        <div class="field"><label>Section style</label>
+          <select id="sectionStyle">
+            <option value="section-default">White</option>
+            <option value="section-soft">Soft</option>
+            <option value="section-dark">Dark</option>
+          </select>
+        </div>
+        <div class="two">
+          <div class="field"><label>Top padding</label><input id="padTop" type="number" value="${parseInt(getComputedStyle(selected).paddingTop)||0}"></div>
+          <div class="field"><label>Bottom padding</label><input id="padBottom" type="number" value="${parseInt(getComputedStyle(selected).paddingBottom)||0}"></div>
+        </div>
+        <button id="deleteItem" class="danger">Delete section</button>`;
+
+      $("bgColor").addEventListener("input",e=>{selected.style.background=e.target.value;});
+      $("sectionStyle").addEventListener("change",e=>{
+        saveSnapshot();
+        selected.classList.remove("section-default","section-soft","section-dark","hero");
+        selected.classList.add(e.target.value);
+      });
+      $("padTop").addEventListener("input",e=>selected.style.paddingTop=e.target.value+"px");
+      $("padBottom").addEventListener("input",e=>selected.style.paddingBottom=e.target.value+"px");
+      $("deleteItem").addEventListener("click",()=>{
+        saveSnapshot(); selected.remove(); selected=null; renderInspector(); renderLayers();
+      });
+      return;
+    }
+
+    let text = "";
+    if(type==="heading") text = selected.querySelector("h1,h2,h3")?.innerText || "";
+    if(type==="text") text = selected.querySelector("p")?.innerText || "";
+    if(type==="button") text = selected.querySelector("a")?.innerText || "";
+    if(type==="image") text = selected.querySelector("img")?.src || "";
+    const primaryEditable = selected.querySelector("[data-editable-primary]");
+    if(primaryEditable) text = primaryEditable.innerText || "";
+
+    inspector.innerHTML = `
+      ${(["heading","text","button"].includes(type) || primaryEditable) ? `<div class="field"><label>Content</label><textarea id="textValue">${esc(text)}</textarea></div>` : ""}
+      ${type==="image" ? `<div class="field"><label>Image URL</label><textarea id="imageUrl">${esc(text)}</textarea></div>` : ""}
+      <div class="field"><label>Font</label>
+        <select id="fontFamily">
+          <option value='Inter,system-ui,sans-serif'>Inter / System</option>
+          <option value='Georgia,serif'>Georgia</option>
+          <option value='"Trebuchet MS",sans-serif'>Trebuchet</option>
+          <option value='Verdana,sans-serif'>Verdana</option>
+          <option value='"Courier New",monospace'>Courier New</option>
+          <option value='"Times New Roman",serif'>Times New Roman</option>
+        </select>
+      </div>
+      <div class="two">
+        <div class="field"><label>Font size</label><input id="fontSize" type="number" value="${parseInt(getComputedStyle(selected.querySelector("h1,h2,h3,p,a")||selected).fontSize)||16}"></div>
+        <div class="field"><label>Weight</label>
+          <select id="fontWeight">
+            <option value="400">Regular</option>
+            <option value="500">Medium</option>
+            <option value="700">Bold</option>
+            <option value="800">Heavy</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Text colour</label><input id="textColor" type="color" value="${rgbToHex(getComputedStyle(primaryEditable || selected.querySelector("h1,h2,h3,p,a") || selected).color)}"></div>
+      <div class="field"><label>Alignment</label><div class="quick-actions"><button id="alignLeft" type="button">Left</button><button id="alignCenter" type="button">Center</button><button id="alignRight" type="button">Right</button></div></div>
+      ${type==="button" ? `<div class="two"><div class="field"><label>Button colour</label><input id="buttonBg" type="color" value="${rgbToHex(getComputedStyle(selected.querySelector("a")).backgroundColor)}"></div><div class="field"><label>Corner radius</label><input id="buttonRadius" type="number" min="0" max="60" value="${parseInt(getComputedStyle(selected.querySelector("a")).borderRadius)||0}"></div></div><div class="field"><label>Link</label><input id="buttonHref" value="${esc(selected.querySelector("a")?.getAttribute("href")||"#")}"></div>` : ""}
+      <div class="field"><label>Order</label><div class="move-buttons"><button id="moveUp">↑ Up</button><button id="moveDown">↓ Down</button></div></div>
+      <div class="inspector-note">Turn on <b>Free move</b> above the canvas, then drag this element anywhere inside its section. Fine-tune the offset here.</div>
+      <div class="position-grid">
+        <div class="field"><label>X offset</label><input id="offsetX" type="number" value="${Number(selected.dataset.offsetX)||0}"></div>
+        <div class="field"><label>Y offset</label><input id="offsetY" type="number" value="${Number(selected.dataset.offsetY)||0}"></div>
+      </div>
+      <div class="field position-row"><button id="resetPosition" class="mini-button" type="button">Reset position</button></div>
+      <button id="deleteItem" class="danger">Delete element</button>`;
+
+    const target = primaryEditable || selected.querySelector("h1,h2,h3,p,a") || selected;
+    const tv = $("textValue");
+    if(tv) tv.addEventListener("input",e=>{target.innerText=e.target.value; renderLayers();});
+    const iu = $("imageUrl");
+    if(iu) iu.addEventListener("input",e=>{const img=selected.querySelector("img"); if(img) img.src=e.target.value;});
+    $("fontFamily").addEventListener("change",e=>target.style.fontFamily=e.target.value);
+    $("fontSize").addEventListener("input",e=>target.style.fontSize=Math.max(8,Number(e.target.value)||16)+"px");
+    $("fontWeight").addEventListener("change",e=>target.style.fontWeight=e.target.value);
+    $("textColor").addEventListener("input",e=>{ target.style.color=e.target.value; });
+    $("alignLeft")?.addEventListener("click",()=>{selected.style.textAlign="left"});
+    $("alignCenter")?.addEventListener("click",()=>{selected.style.textAlign="center"});
+    $("alignRight")?.addEventListener("click",()=>{selected.style.textAlign="right"});
+    if(type==="button"){
+      const link=selected.querySelector("a");
+      $("buttonBg")?.addEventListener("input",e=>link.style.background=e.target.value);
+      $("buttonRadius")?.addEventListener("input",e=>link.style.borderRadius=Math.max(0,Number(e.target.value)||0)+"px");
+      $("buttonHref")?.addEventListener("input",e=>link.setAttribute("href",e.target.value||"#"));
+    }
+    const applyOffset = () => {
+      const x = Number($("offsetX").value)||0, y = Number($("offsetY").value)||0;
+      selected.dataset.offsetX = x; selected.dataset.offsetY = y;
+      selected.style.transform = `translate(${x}px, ${y}px)`;
+    };
+    $("offsetX").addEventListener("input",applyOffset);
+    $("offsetY").addEventListener("input",applyOffset);
+    $("resetPosition").addEventListener("click",()=>{saveSnapshot(); selected.dataset.offsetX=0; selected.dataset.offsetY=0; selected.style.transform=""; $("offsetX").value=0; $("offsetY").value=0;});
+    $("moveUp").addEventListener("click",()=>moveSelected(-1));
+    $("moveDown").addEventListener("click",()=>moveSelected(1));
+    $("deleteItem").addEventListener("click",()=>{
+      saveSnapshot(); selected.remove(); selected=null; renderInspector(); renderLayers();
+    });
+  }
+
+  function moveSelected(dir){
+    if(!selected?.classList.contains("element")) return;
+    saveSnapshot();
+    const parent = selected.parentElement;
+    const items = [...parent.children].filter(x=>x.classList.contains("element"));
+    const i = items.indexOf(selected);
+    const ni = i + dir;
+    if(ni<0 || ni>=items.length) return;
+    if(dir<0) parent.insertBefore(selected,items[ni]);
+    else parent.insertBefore(items[ni],selected);
+    renderLayers();
+  }
+
+  document.querySelectorAll("[data-add]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      saveSnapshot();
+      const type = btn.dataset.add;
+      if(type==="section"){
+        const sec = document.createElement("section");
+        sec.className = "site-section section-default";
+        sec.dataset.type = "section";
+        sec.innerHTML = `<div class="element" data-type="heading"><div class="drag-handle">Reorder</div><h2>New section</h2></div>
+                         <div class="element" data-type="text"><div class="drag-handle">Reorder</div><p>Add your content here.</p></div>`;
+        canvas.appendChild(sec); selectElement(sec); return;
+      }
+      const section = selected?.closest(".site-section") || canvas.lastElementChild;
+      if(!section) return;
+      const el = document.createElement("div");
+      el.className = "element";
+      el.dataset.type = type;
+      if(type==="heading") el.innerHTML = `<div class="drag-handle">Reorder</div><h2>Your heading</h2>`;
+      if(type==="text") el.innerHTML = `<div class="drag-handle">Reorder</div><p>Write something here.</p>`;
+      if(type==="button") el.innerHTML = `<div class="drag-handle">Reorder</div><a class="cta" href="#">Button</a>`;
+      if(type==="image") el.innerHTML = `<div class="drag-handle">Reorder</div><img src="https://picsum.photos/1000/500" alt="" style="max-width:100%;display:block;border-radius:12px">`;
+      if(type==="spacer") el.innerHTML = `<div class="drag-handle">Reorder</div><div style="height:70px"></div>`;
+      if(type==="divider") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-divider"></div>`;
+      if(type==="badge") el.innerHTML = `<div class="drag-handle">Reorder</div><span class="sf-badge" data-editable-primary>New</span>`;
+      if(type==="icon") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-iconbox" data-editable-primary>✦</div>`;
+      if(type==="navbar") el.innerHTML = `<div class="drag-handle">Reorder</div><nav class="sf-navbar"><div class="sf-brand" data-editable-primary>YourBrand</div><div class="sf-navlinks"><a href="#">Home</a><a href="#">About</a><a href="#">Work</a><a href="#">Contact</a></div><a class="cta" href="#">Get started</a></nav>`;
+      if(type==="banner") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-banner"><div><span class="sf-badge">Announcement</span> <strong data-editable-primary>Something exciting just launched.</strong></div><a class="cta" href="#">Learn more</a></div>`;
+      if(type==="columns") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-columns"><div><h3 data-editable-primary>Left column</h3><p>Add supporting content here.</p></div><div><h3>Right column</h3><p>Use columns for comparisons, features or stories.</p></div></div>`;
+      if(type==="cards") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-grid"><div class="sf-card"><h3 data-editable-primary>Fast</h3><p>A polished card for a feature or service.</p></div><div class="sf-card"><h3>Flexible</h3><p>Mix content and rearrange it whenever you want.</p></div><div class="sf-card"><h3>Yours</h3><p>Change the copy, styling and position.</p></div></div>`;
+      if(type==="stats") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-grid"><div class="sf-stat"><strong data-editable-primary>12K+</strong><span>Users</span></div><div class="sf-stat"><strong>98%</strong><span>Satisfaction</span></div><div class="sf-stat"><strong>24/7</strong><span>Available</span></div></div>`;
+      if(type==="testimonial") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-testimonial"><p data-editable-primary>“This builder made it ridiculously easy to turn an idea into a real site.”</p><strong>Alex Morgan</strong><div style="color:#8a93a1;font-size:13px;margin-top:3px">Designer</div></div>`;
+      if(type==="pricing") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-grid"><div class="sf-card"><span class="sf-badge">Starter</span><h3 data-editable-primary>Free</h3><div class="sf-price">$0 <small>/ month</small></div><p>For trying out your next idea.</p></div><div class="sf-card"><span class="sf-badge">Popular</span><h3>Pro</h3><div class="sf-price">$19 <small>/ month</small></div><p>For serious projects and teams.</p></div><div class="sf-card"><span class="sf-badge">Scale</span><h3>Business</h3><div class="sf-price">$49 <small>/ month</small></div><p>Advanced controls for growing teams.</p></div></div>`;
+      if(type==="faq") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-faq"><details open><summary data-editable-primary>What can I build?</summary><p>Anything from a landing page to a portfolio or product site.</p></details><details><summary>Can I export it?</summary><p>Yes. Download your finished website as HTML.</p></details><details><summary>Can I move things around?</summary><p>Yes. Reorder normally or turn on Free move.</p></details></div>`;
+      if(type==="footer") el.innerHTML = `<div class="drag-handle">Reorder</div><footer class="sf-footer"><div><div class="sf-brand" data-editable-primary>YourBrand</div><p style="opacity:.65">Build something people remember.</p></div><div><strong>Product</strong><a href="#">Features</a><a href="#">Pricing</a></div><div><strong>Company</strong><a href="#">About</a><a href="#">Contact</a></div><div><strong>Legal</strong><a href="#">Privacy</a><a href="#">Terms</a></div></footer>`;
+      if(type==="gallery") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-gallery"><img src="https://picsum.photos/800/800?random=11" alt=""><img src="https://picsum.photos/500/500?random=12" alt=""><img src="https://picsum.photos/500/500?random=13" alt=""><img src="https://picsum.photos/500/500?random=14" alt=""><img src="https://picsum.photos/500/500?random=15" alt=""></div>`;
+      if(type==="video") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-video" data-editable-primary>▶ &nbsp; Video / embed area</div>`;
+      if(type==="form") el.innerHTML = `<div class="drag-handle">Reorder</div><form class="sf-form" onsubmit="return false"><div class="sf-form-row"><input placeholder="Name"><input type="email" placeholder="Email"></div><textarea placeholder="Message"></textarea><div><button class="cta" type="button" data-editable-primary>Send message</button></div></form>`;
+      if(type==="list") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-list"><div><b>✓</b><span data-editable-primary>Beautiful responsive layouts</span></div><div><b>✓</b><span>Drag, reorder and free-position elements</span></div><div><b>✓</b><span>Export as a standalone website</span></div></div>`;
+      if(type==="progress") el.innerHTML = `<div class="drag-handle">Reorder</div><div style="display:grid;gap:8px"><div style="display:flex;justify-content:space-between"><strong data-editable-primary>Project progress</strong><span>68%</span></div><div class="sf-progress"><span></span></div></div>`;
+      if(type==="social") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-socials"><a href="#">X</a><a href="#">in</a><a href="#">◎</a><a href="#">▶</a></div>`;
+      if(type==="marquee") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-marquee" data-editable-primary>✦ DESIGN &nbsp;&nbsp; ✦ BUILD &nbsp;&nbsp; ✦ PUBLISH &nbsp;&nbsp; ✦ CREATE &nbsp;&nbsp; ✦ SITEFLOW</div>`;
+      if(type==="quote") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-quote" data-editable-primary>Good design makes the complicated feel simple.</div>`;
+      section.appendChild(el); ensureElementToolbar(el); selectElement(el);
+    });
+  });
+
+  function ensureElementToolbar(el){
+    if(!el || !el.classList?.contains("element") || el.querySelector(":scope > .element-toolbar")) return;
+    const bar=document.createElement("div"); bar.className="element-toolbar";
+    bar.innerHTML=`<button type="button" data-el-action="drag" class="drag-handle">↕ Move</button><button type="button" data-el-action="duplicate">⧉ Duplicate</button><button type="button" data-el-action="up">↑</button><button type="button" data-el-action="down">↓</button><button type="button" data-el-action="delete">Delete</button>`;
+    el.prepend(bar);
+  }
+  function hydrateElementToolbars(){canvas.querySelectorAll(".element").forEach(ensureElementToolbar)}
+  canvas.addEventListener("click",e=>{
+    const b=e.target.closest("[data-el-action]"); if(!b)return;
+    const el=b.closest(".element"); if(!el)return; e.stopPropagation(); selectElement(el);
+    const action=b.dataset.elAction;
+    if(action==="duplicate"){saveSnapshot(); const copy=el.cloneNode(true); copy.classList.remove("selected","moving","free-dragging"); el.after(copy); hydrateElementToolbars(); selectElement(copy); renderLayers();}
+    if(action==="up") moveSelected(-1);
+    if(action==="down") moveSelected(1);
+    if(action==="delete"){saveSnapshot(); el.remove(); selected=null; renderInspector(); renderLayers();}
+  });
+  const searchBox=document.getElementById("elementSearch");
+  if(searchBox) searchBox.addEventListener("input",()=>{
+    const q=searchBox.value.trim().toLowerCase();
+    document.querySelectorAll("#elementsPanel .block").forEach(b=>b.classList.toggle("hidden-by-search",q && !(b.dataset.label||b.innerText).toLowerCase().includes(q)));
+    document.querySelectorAll("#elementsPanel .element-category").forEach(cat=>{
+      let n=cat.nextElementSibling, any=false;
+      if(n?.classList.contains("block-grid")) any=[...n.querySelectorAll(".block")].some(b=>!b.classList.contains("hidden-by-search"));
+      cat.classList.toggle("hidden-by-search",!!q&&!any);
+    });
+  });
+  let zoom=1;
+  const applyZoom=()=>{canvas.style.transform=`scale(${zoom})`; document.getElementById("zoomReadout").textContent=Math.round(zoom*100)+"%"; document.querySelector(".stage").style.paddingBottom=(28 + canvas.offsetHeight*(zoom-1))+"px";};
+  document.getElementById("zoomIn")?.addEventListener("click",()=>{zoom=Math.min(1.3,zoom+.1);applyZoom()});
+  document.getElementById("zoomOut")?.addEventListener("click",()=>{zoom=Math.max(.5,zoom-.1);applyZoom()});
+  hydrateElementToolbars();
+
+  /* drag reordering */
+  let moving=null, pointerId=null, marker=null;
+  const clearMarker=()=>{if(marker){marker.remove();marker=null;}};
+
+  canvas.addEventListener("pointerdown",e=>{
+    const handle = e.target.closest(".drag-handle");
+    if(!handle) return;
+    moving = handle.closest(".element");
+    if(!moving) return;
+    saveSnapshot();
+    pointerId = e.pointerId;
+    moving.classList.add("moving");
+    selectElement(moving);
+    e.preventDefault();
+    try{handle.setPointerCapture(pointerId)}catch{}
+  });
+
+  canvas.addEventListener("pointermove",e=>{
+    if(!moving || e.pointerId!==pointerId) return;
+    clearMarker();
+    const target = document.elementFromPoint(e.clientX,e.clientY);
+    const targetEl = target?.closest(".element");
+    const targetSec = target?.closest(".site-section");
+    marker = document.createElement("div");
+    marker.className = "drop-marker";
+
+    if(targetEl && targetEl!==moving && canvas.contains(targetEl)){
+      const r = targetEl.getBoundingClientRect();
+      const before = e.clientY < r.top + r.height/2;
+      targetEl.parentElement.insertBefore(marker,before ? targetEl : targetEl.nextSibling);
+    }else if(targetSec && canvas.contains(targetSec)){
+      targetSec.appendChild(marker);
+    }else clearMarker();
+  });
+
+  function finishMove(e){
+    if(!moving || (e && e.pointerId!==pointerId)) return;
+    if(marker?.parentElement) marker.parentElement.insertBefore(moving,marker);
+    clearMarker(); moving.classList.remove("moving"); moving=null; pointerId=null; renderLayers();
+  }
+  canvas.addEventListener("pointerup",finishMove);
+  canvas.addEventListener("pointercancel",finishMove);
+
+  document.querySelectorAll("[data-device]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll("[data-device]").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      canvas.classList.remove("tablet","mobile");
+      if(btn.dataset.device!=="desktop") canvas.classList.add(btn.dataset.device);
+    });
+  });
+
+  $("saveBtn").addEventListener("click",()=>{
+    persistCurrent();
+    try{
+      localStorage.setItem("siteforge_pastel_project",JSON.stringify({
+        projectName:$("projectName").value,pages,currentPageId
+      }));
+      toast("Saved in this browser");
+    }catch{toast("Save failed");}
+  });
+
+  function loadSaved(){
+    try{
+      const raw = localStorage.getItem("siteforge_pastel_project");
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      if(Array.isArray(data.pages) && data.pages.length){
+        pages = data.pages;
+        currentPageId = data.currentPageId || pages[0].id;
+        $("projectName").value = data.projectName || "My Website";
+      }
+    }catch{}
+  }
+
+  function clean(raw){
+    const temp=document.createElement("div");
+    temp.innerHTML=raw;
+    temp.querySelectorAll(".drag-handle,.drop-marker,.element-toolbar").forEach(x=>x.remove());
+    temp.querySelectorAll(".selected,.moving").forEach(x=>x.classList.remove("selected","moving"));
+    temp.querySelectorAll(".element").forEach(x=>{x.classList.remove("element");x.removeAttribute("data-type")});
+    temp.querySelectorAll(".site-section").forEach(x=>{x.classList.remove("site-section");x.removeAttribute("data-type")});
+    return temp.innerHTML;
+  }
+
+  function buildStandalone(){
+    persistCurrent();
+    const project = esc($("projectName").value || "My Website");
+    const pageData = pages.map(p=>({
+      id:p.id,name:p.name,slug:p.slug,html:clean(p.html)
+    }));
+
+    const firstId = pageData[0]?.id || "home";
+    const dataJson = JSON.stringify(pageData).replace(/</g,"\\u003c");
+
+    return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${project}</title>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,Arial,sans-serif;color:#20242a;background:#fff}
+.site-nav{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);border-bottom:1px solid #e7e9e4;padding:14px 22px}
+.nav-inner{max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.links{display:flex;gap:14px;flex-wrap:wrap}
+.links button{border:0;background:transparent;color:#5d6671;cursor:pointer;font-weight:700;padding:6px 8px;border-radius:7px}
+.links button:hover{background:#f3f5f1}
+.page{display:none}
+.page.active{display:block}
+section{padding:72px 48px}
+h1{font-size:58px;line-height:1.04;margin:0 0 18px}
+h2{font-size:36px;margin:0 0 18px}
+p{font-size:18px;line-height:1.6}
+.hero{background:linear-gradient(135deg,#fff8f5,#f5faf7);text-align:center}
+.hero p{max-width:700px;margin:0 auto 28px;color:#626a73}
+.section-default{background:#fff}
+.section-soft{background:#f8faf7}
+.section-dark{background:#23272d;color:#fff}
+.cta{display:inline-block;background:#2c3137;color:#fff;padding:13px 20px;border-radius:10px;text-decoration:none;font-weight:800}
+img{max-width:100%}
+@media(max-width:650px){
+  section{padding:48px 22px}h1{font-size:42px}
+  .nav-inner{align-items:flex-start;flex-direction:column}
+}
+</style>
+
+<style id="reference-redesign">
+:root{
+  --bg:#f7f9fb;--paper:#fff;--ink:#111827;--muted:#7c8798;--line:#e8edf2;
+  --cyan:#38c9c7;--cyan-soft:#e9fbfa;--peach:#ff9f87;--peach-soft:#fff0eb;
+  --blue:#348cff;--shadow:0 12px 35px rgba(40,55,75,.07)
+}
+body{background:#f7f9fb;color:var(--ink)}
+.topbar{
+  height:72px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);
+  box-shadow:0 1px 0 rgba(20,30,40,.02)
+}
+.app{grid-template-rows:72px 1fr}
+.logo{
+  width:42px;height:42px;border-radius:14px;color:#fff;font-size:0;
+  background:linear-gradient(145deg,#65dfdd 0 35%,#b9a6f7 36% 62%,#ff9f87 63% 100%);
+  position:relative;box-shadow:none
+}
+.logo:after{
+  content:"S";font-size:25px;font-weight:950;color:white;position:absolute;inset:0;
+  display:grid;place-items:center;text-shadow:0 1px 2px rgba(0,0,0,.08)
+}
+.project-name{font-size:20px;font-weight:850;width:185px}
+.top-center{background:#fff;border-color:var(--line);box-shadow:0 3px 12px rgba(40,55,75,.03)}
+.top-button.primary{background:var(--cyan);border-color:var(--cyan);color:#fff}
+.top-button.primary:hover{background:#28b9b7}
+.workspace{grid-template-columns:254px 1fr 300px}
+.left,.right{background:#fff}
+.panel{padding:18px 20px}
+.panel-title{color:#536071;font-size:11px;letter-spacing:.08em}
+.block-grid{display:grid;grid-template-columns:1fr;gap:5px}
+.block{
+  min-height:48px;padding:9px 12px;display:flex;align-items:center;gap:12px;
+  border-radius:9px;box-shadow:0 2px 8px rgba(40,55,75,.025)
+}
+.block .block-icon{margin:0;width:28px;height:28px;background:#f7f9fb!important;color:#596575}
+.block strong{font-size:12px}
+.page-row.active{background:#eef6ff;border-color:#dbeaff;color:#2377dc}
+.page-row.active .page-dot{background:var(--blue)}
+.center{background:#f8fafc}
+.canvas-bar{height:56px;background:rgba(255,255,255,.93);border-bottom:1px solid var(--line)}
+.device-tabs{box-shadow:0 3px 12px rgba(40,55,75,.04)}
+.device-tabs button.active{background:#edf5ff;color:#2581ed}
+.stage{padding:26px 22px 60px}
+.canvas{box-shadow:0 10px 35px rgba(45,60,80,.09);border:1px solid #e8edf2;border-radius:8px}
+.hero{
+  background:linear-gradient(135deg,#ffffff 0%,#fbfefd 55%,#fff7f3 100%);
+  text-align:left;padding:86px 54px
+}
+.hero h1{font-size:60px;max-width:650px;letter-spacing:-2.5px}
+.hero h1::first-line{color:#111827}
+.hero p{margin:0 0 28px;max-width:600px;color:#657082}
+.cta{background:var(--cyan);border-radius:9px}
+.site-section.selected{border-color:var(--blue)}
+.element.selected{outline-color:var(--blue)}
+.drag-handle{background:var(--blue)}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#7ab7ff;box-shadow:0 0 0 3px #edf6ff}
+.notice{border-color:#dfe7ee}
+</style>
+
+
+<style id="siteflow-ultimate-upgrade">
+/* SiteFlow Ultimate Editor upgrade */
+.left{width:auto}.workspace{grid-template-columns:280px minmax(420px,1fr) 320px}
+.panel{padding:14px}.panel-title{color:#7a8597}.panel-title-row{gap:8px}
+.element-search{width:100%;height:36px;border:1px solid #e4e9f0;border-radius:10px;background:#f8fafc;padding:0 11px;outline:none;margin:0 0 10px;color:#273244}.element-search:focus{border-color:#9cadff;box-shadow:0 0 0 3px rgba(91,120,255,.10);background:white}
+.element-category{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#a0a9b7;margin:13px 2px 7px}
+.block-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}.block{min-height:64px!important;padding:10px!important;border-radius:12px!important;display:flex!important;align-items:center!important;gap:9px!important}.block .block-icon{width:31px!important;height:31px!important;margin:0!important;flex:0 0 auto;font-size:13px;font-weight:900;background:#f1f4ff!important;color:#596ed5!important}.block strong{font-size:11px!important;line-height:1.15}.block.hidden-by-search,.element-category.hidden-by-search{display:none!important}
+.canvas-bar{justify-content:space-between!important;padding:0 14px;gap:10px}.canvas-tools{display:flex;align-items:center;gap:8px}.mode-button{border:1px solid #dfe5ee;background:#fff;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:850;color:#5d6879}.mode-button.active{background:#edf0ff;border-color:#aebaff;color:#4c60c8}.free-move-hint{font-size:10px;color:#929bac}.zoom-tools{display:flex;align-items:center;gap:5px}.zoom-tools button{border:1px solid #e1e6ed;background:#fff;border-radius:8px;width:30px;height:30px;color:#647083;font-weight:900}.zoom-readout{font-size:10px;font-weight:850;color:#778294;min-width:38px;text-align:center}.stage{transform-origin:top center}.canvas{transform-origin:top center}
+.site-section{min-height:80px}.element{min-height:6px}.element-toolbar{position:absolute;z-index:70;top:-37px;left:0;display:none;align-items:center;background:#202633;color:white;border-radius:9px;padding:4px;box-shadow:0 7px 20px rgba(20,30,45,.18);white-space:nowrap}.element.selected>.element-toolbar{display:flex}.element-toolbar button{border:0;background:transparent;color:#dbe2ee;border-radius:6px;padding:5px 7px;font-size:10px;font-weight:850}.element-toolbar button:hover{background:#343d4d;color:white}.element.selected>.drag-handle{display:none!important}
+.sf-navbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:8px 2px}.sf-brand{font-weight:900;font-size:20px}.sf-navlinks{display:flex;gap:18px;align-items:center}.sf-navlinks a{color:inherit;text-decoration:none;font-size:14px;font-weight:700}.sf-banner{padding:18px 22px;border-radius:16px;background:linear-gradient(135deg,#eef2ff,#f7f2ff);display:flex;align-items:center;justify-content:space-between;gap:18px}.sf-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#5368c9;font-size:12px;font-weight:850}.sf-divider{height:1px;background:#e8ebef;width:100%;margin:14px 0}.sf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.sf-card{border:1px solid #e7eaf0;border-radius:16px;padding:20px;background:#fff;box-shadow:0 7px 20px rgba(38,48,65,.04)}.sf-card h3{margin:0 0 8px}.sf-card p{margin:0;color:#697383;line-height:1.55}.sf-stat{text-align:center;padding:18px}.sf-stat strong{display:block;font-size:34px;letter-spacing:-.04em}.sf-stat span{color:#7b8492;font-size:13px}.sf-quote{border-left:4px solid #778cff;padding:8px 0 8px 18px;font-size:22px;line-height:1.45}.sf-testimonial{padding:24px;border-radius:18px;background:#f8f9fc}.sf-testimonial p{font-size:18px;line-height:1.6;margin-top:0}.sf-price{font-size:38px;font-weight:900;letter-spacing:-.04em}.sf-price small{font-size:13px;color:#7b8492;font-weight:600}.sf-form{display:grid;gap:10px;max-width:620px}.sf-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sf-form input,.sf-form textarea{width:100%;border:1px solid #dde3eb;border-radius:11px;padding:12px;background:#fff}.sf-form textarea{min-height:100px}.sf-gallery{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}.sf-gallery img{width:100%;height:190px;object-fit:cover;border-radius:14px}.sf-gallery img:first-child{height:390px;grid-row:span 2}.sf-video{aspect-ratio:16/9;border-radius:16px;background:#141922;display:grid;place-items:center;color:#fff;font-weight:800;overflow:hidden}.sf-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px}.sf-footer{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:28px}.sf-footer strong{display:block;margin-bottom:9px}.sf-footer a{display:block;color:inherit;opacity:.68;text-decoration:none;margin:7px 0;font-size:13px}.sf-iconbox{width:52px;height:52px;border-radius:14px;background:#eef2ff;display:grid;place-items:center;font-size:24px}.sf-list{display:grid;gap:9px}.sf-list div{display:flex;gap:10px;align-items:flex-start}.sf-list b{color:#5d72d5}.sf-marquee{overflow:hidden;border-block:1px solid #e9edf2;padding:12px 0;font-weight:850;white-space:nowrap}.sf-progress{height:10px;background:#edf0f4;border-radius:99px;overflow:hidden}.sf-progress span{display:block;height:100%;width:68%;background:#697ee5;border-radius:inherit}.sf-faq details{border-bottom:1px solid #e8ebef;padding:14px 0}.sf-faq summary{font-weight:850;cursor:pointer}.sf-socials{display:flex;gap:9px}.sf-socials a{width:38px;height:38px;border-radius:10px;border:1px solid #e2e7ee;display:grid;place-items:center;text-decoration:none;color:inherit;font-weight:900}
+.inspector-tabs{display:flex;gap:4px;padding:4px;background:#f4f6f9;border-radius:10px;margin-bottom:14px}.inspector-tabs button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px;font-size:10px;font-weight:850;color:#7b8595}.inspector-tabs button.active{background:#fff;color:#485568;box-shadow:0 2px 7px rgba(30,40,55,.07)}.range-row{display:grid;grid-template-columns:1fr 50px;gap:8px;align-items:center}.inspector-note{font-size:11px!important;line-height:1.5!important;background:#f7f8fb;border:1px solid #e8ebf0;border-radius:10px;padding:9px;color:#758092;margin-bottom:12px}.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}.quick-actions button{border:1px solid #e2e7ee;background:#fff;border-radius:8px;padding:8px 4px;font-size:10px;font-weight:850;color:#627084}.quick-actions button:hover{background:#f6f8fb}.right .panel{position:sticky;top:0}.canvas.mobile .sf-grid,.canvas.mobile .sf-columns,.canvas.mobile .sf-footer,.canvas.mobile .sf-form-row,.canvas.mobile .sf-gallery{grid-template-columns:1fr}.canvas.mobile .sf-gallery img,.canvas.mobile .sf-gallery img:first-child{height:190px;grid-row:auto}.canvas.mobile .sf-navlinks{display:none}.canvas.tablet .sf-grid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:1120px){.workspace{grid-template-columns:250px 1fr 290px}}
+</style>
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner"><strong>${project}</strong><div class="links" id="navLinks"></div></div></nav>
+<main id="sitePages"></main>
+<script>
+const pages=${dataJson};
+const root=document.getElementById("sitePages");
+const nav=document.getElementById("navLinks");
+pages.forEach((p,i)=>{
+  const s=document.createElement("section");
+  s.className="page"+(i===0?" active":"");
+  s.id="page-"+p.id;
+  s.innerHTML=p.html;
+  root.appendChild(s);
+  const b=document.createElement("button");
+  b.textContent=p.name;
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    s.classList.add("active");
+    history.replaceState(null,"","#page-"+p.id);
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+  nav.appendChild(b);
+});
+const hash=location.hash.replace("#page-","");
+if(hash){
+  const target=document.getElementById("page-"+hash);
+  if(target){
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    target.classList.add("active");
+  }
+}
+<\/script>
+
+
+
+</body>
+</html>`;
+  }
+
+  function downloadSite(){
+    const blob = new Blob([buildStandalone()],{type:"text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = slugify($("projectName").value || "website") + ".html";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast("Website downloaded");
+  }
+
+  $("downloadBtn").addEventListener("click",downloadSite);
+  $("publishDownloadBtn").addEventListener("click",downloadSite);
+
+  $("previewBtn").addEventListener("click",()=>{
+    const blob = new Blob([buildStandalone()],{type:"text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url,"_blank");
+    if(!win) toast("Allow pop-ups to preview");
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  });
+
+  $("publishBtn").addEventListener("click",()=>$("publishModal").classList.add("show"));
+
+  $("undoBtn").addEventListener("click",()=>{
+    if(!history.length){toast("Nothing to undo");return;}
+    persistCurrent();
+    future.push(JSON.stringify({pages,currentPageId}));
+    const state = JSON.parse(history.pop());
+    pages = state.pages;
+    currentPageId = state.currentPageId;
+    loadPage(currentPageId,false,false);
+  });
+
+  $("redoBtn").addEventListener("click",()=>{
+    if(!future.length){toast("Nothing to redo");return;}
+    persistCurrent();
+    history.push(JSON.stringify({pages,currentPageId}));
+    const state = JSON.parse(future.pop());
+    pages = state.pages;
+    currentPageId = state.currentPageId;
+    loadPage(currentPageId,false,false);
+  });
+
+  loadSaved();
+  loadPage(currentPageId,false,false);
+})();
+</script>
+
+<script id="auth-clean-script">
+(() => {
+  const auth = document.getElementById("authScreen");
+  const builder = document.getElementById("builderApp");
+  const signInTab = document.getElementById("signInTab");
+  const signUpTab = document.getElementById("signUpTab");
+  const form = document.getElementById("authForm");
+  const nameField = document.getElementById("nameField");
+  const confirmField = document.getElementById("confirmField");
+  const heading = document.getElementById("authHeading");
+  const subheading = document.getElementById("authSubheading");
+  const submit = document.getElementById("authSubmit");
+  const name = document.getElementById("authName");
+  const email = document.getElementById("authEmail");
+  const password = document.getElementById("authPassword");
+  const confirm = document.getElementById("authConfirm");
+  const remember = document.getElementById("rememberMe");
+  const error = document.getElementById("authError");
+  const forgot = document.getElementById("forgotBtn");
+  const signOut = document.getElementById("signOutBtn");
+  const savedAccountField = document.getElementById("savedAccountField");
+  const savedAccountSelect = document.getElementById("savedAccountSelect");
+  const onboarding = document.getElementById("onboardingScreen");
+  const verification = document.getElementById("verificationScreen");
+  const verifyEmail = document.getElementById("verifyEmail");
+  const codeInputs = [...document.querySelectorAll("#codeInputs .code-input")];
+  const verifyError = document.getElementById("verifyError");
+  const verifySubmit = document.getElementById("verifySubmit");
+  const resendCodeBtn = document.getElementById("resendCodeBtn");
+  const verifyBackBtn = document.getElementById("verifyBackBtn");
+  const verificationDeliveryNote = document.getElementById("verificationDeliveryNote");
+
+  let mode = "signin";
+  let pendingSignup = null;
+  let resendTimer = null;
+
+  function setError(msg){
+    error.textContent = msg || "";
+    error.classList.toggle("show", !!msg);
+  }
+
+  function setMode(next){
+    mode = next;
+    const signup = next === "signup";
+    signInTab.classList.toggle("active", !signup);
+    signUpTab.classList.toggle("active", signup);
+    nameField.hidden = !signup;
+    confirmField.hidden = !signup;
+    heading.textContent = signup ? "Create your account" : "Welcome back";
+    subheading.textContent = signup
+      ? "Create an account and start building."
+      : "Sign in to continue to your SiteFlow workspace.";
+    submit.textContent = signup ? "Create account" : "Sign in";
+    password.autocomplete = signup ? "new-password" : "current-password";
+    setError("");
+    refreshSavedAccounts();
+  }
+
+  function getUsers(){
+    try{
+      const data = JSON.parse(localStorage.getItem("siteflow_users") || "[]");
+      return Array.isArray(data) ? data : [];
+    }catch{
+      return [];
+    }
+  }
+
+  function refreshSavedAccounts(){
+    const users = getUsers();
+    savedAccountSelect.innerHTML = '<option value="">Choose a saved account…</option>';
+    users.forEach(u=>{
+      const opt=document.createElement("option"); opt.value=u.email; opt.textContent=`${u.name || "User"} — ${u.email}`; savedAccountSelect.appendChild(opt);
+    });
+    savedAccountField.hidden = users.length===0 || mode!=="signin";
+    const last = localStorage.getItem("siteflow_last_account");
+    if(last && users.some(u=>u.email===last)){
+      savedAccountSelect.value=last;
+      const u=users.find(x=>x.email===last); email.value=u.email; password.value=u.password || ""; remember.checked=true;
+    }
+  }
+
+  function maskEmail(value){
+    const [local,domain]=value.split("@");
+    if(!domain) return value;
+    const shown=local.length<=2?(local[0]||""):local.slice(0,2);
+    return `${shown}${"•".repeat(Math.max(2,local.length-shown.length))}@${domain}`;
+  }
+
+  function clearCodeInputs(){
+    codeInputs.forEach(input=>input.value="");
+    verifyError.textContent="";
+  }
+
+  function beginResendCountdown(seconds=30){
+    clearInterval(resendTimer);
+    let remaining=Math.max(1, Number(seconds)||30);
+    resendCodeBtn.disabled=true;
+    resendCodeBtn.textContent=`Resend in ${remaining}s`;
+    resendTimer=setInterval(()=>{
+      remaining-=1;
+      if(remaining<=0){
+        clearInterval(resendTimer);
+        resendTimer=null;
+        resendCodeBtn.disabled=false;
+        resendCodeBtn.textContent="Resend code";
+      }else{
+        resendCodeBtn.textContent=`Resend in ${remaining}s`;
+      }
+    },1000);
+  }
+
+  async function apiRequest(url, payload){
+    const response=await fetch(url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+
+    let result={};
+    try{ result=await response.json(); }
+    catch{ result={ok:false,error:"The server returned an invalid response."}; }
+
+    if(!response.ok || result.ok===false){
+      const err=new Error(result.error || "Something went wrong. Please try again.");
+      err.status=response.status;
+      err.data=result;
+      throw err;
+    }
+    return result;
+  }
+
+  async function issueVerificationCode(){
+    if(!pendingSignup) return false;
+
+    clearCodeInputs();
+    verifySubmit.disabled=true;
+    resendCodeBtn.disabled=true;
+    verifyError.textContent="";
+    if(verificationDeliveryNote) verificationDeliveryNote.textContent="Sending your verification code…";
+
+    try{
+      const result=await apiRequest("/api/send-verification",{email:pendingSignup.email});
+      const resendAfter=Math.max(1,Number(result.resendAfter)||30);
+      beginResendCountdown(resendAfter);
+      if(verificationDeliveryNote) verificationDeliveryNote.textContent="Code sent. Check your inbox (and spam/junk if needed). It expires after 10 minutes.";
+      setTimeout(()=>codeInputs[0]?.focus(),50);
+      return true;
+    }catch(err){
+      verifyError.textContent=err.message;
+      verifySubmit.disabled=false;
+      const wait=Number(err?.data?.retryAfter)||0;
+      if(wait>0) beginResendCountdown(wait);
+      else{
+        resendCodeBtn.disabled=false;
+        resendCodeBtn.textContent="Try sending again";
+      }
+      if(verificationDeliveryNote) verificationDeliveryNote.textContent="We couldn't confirm delivery yet. You can retry below.";
+      return false;
+    }finally{
+      if(!verifyError.textContent) verifySubmit.disabled=false;
+    }
+  }
+
+  async function showVerification(data){
+    pendingSignup=data;
+    auth.style.display="none";
+    builder.style.display="none";
+    onboarding.classList.remove("show");
+    verification.classList.add("show");
+    document.body.style.overflow="auto";
+    verifyEmail.textContent=maskEmail(data.email);
+    await issueVerificationCode();
+  }
+
+  function finishVerifiedSignup(){
+    if(!pendingSignup) return;
+    const users=getUsers();
+
+    if(users.some(u=>u.email===pendingSignup.email)){
+      verifyError.textContent="That account already exists. Go back and sign in.";
+      return;
+    }
+
+    users.push({
+      name:pendingSignup.name,
+      email:pendingSignup.email,
+      password:pendingSignup.password,
+      verified:true,
+      verifiedAt:new Date().toISOString(),
+      onboardingComplete:false,
+      purpose:"",
+      teamSize:"",
+      vibe:"light"
+    });
+
+    localStorage.setItem("siteflow_users",JSON.stringify(users));
+    localStorage.setItem("siteflow_signed_in","true");
+    localStorage.setItem("siteflow_current_user",pendingSignup.email);
+    localStorage.setItem("siteflow_last_account",pendingSignup.email);
+    pendingSignup=null;
+    clearInterval(resendTimer);
+    resendTimer=null;
+    verification.classList.remove("show");
+    startOnboarding();
+  }
+
+  function accountNeedsOnboarding(userEmail){
+    const users=getUsers(); const u=users.find(x=>x.email===userEmail); return !!u && !u.onboardingComplete;
+  }
+
+  function startOnboarding(){
+    auth.style.display="none"; builder.style.display="none"; verification.classList.remove("show"); onboarding.classList.add("show"); document.body.style.overflow="auto";
+    if(window.SiteFlowOnboarding) window.SiteFlowOnboarding.start();
+  }
+
+  function showBuilder(){
+    auth.style.display = "none"; verification.classList.remove("show"); onboarding.classList.remove("show");
+    builder.style.display = "grid";
+    document.body.style.overflow = "hidden";
+    const activeEmail = localStorage.getItem("siteflow_current_user") || sessionStorage.getItem("siteflow_current_user");
+    const u = getUsers().find(x=>x.email===activeEmail);
+    if(u){
+      document.body.dataset.appTheme = u.vibe || "light";
+      const chip=document.getElementById("userChipText"), avatar=document.getElementById("userAvatar");
+      if(chip) chip.textContent = u.name || u.email;
+      if(avatar) avatar.textContent = (u.name || u.email || "U").slice(0,1).toUpperCase();
+    }
+  }
+
+  function showAuth(){
+    builder.style.display = "none";
+    verification.classList.remove("show"); onboarding.classList.remove("show");
+    auth.style.display = "flex";
+    document.body.style.overflow = "auto";
+    setMode("signin");
+  }
+
+  signInTab.addEventListener("click", () => setMode("signin"));
+  signUpTab.addEventListener("click", () => setMode("signup"));
+  savedAccountSelect.addEventListener("change",()=>{
+    const u=getUsers().find(x=>x.email===savedAccountSelect.value);
+    if(u){ email.value=u.email; password.value=u.password||""; remember.checked=true; setError(""); }
+  });
+
+  forgot.addEventListener("click", () => {
+    if(!email.value.trim()){
+      setError("Enter your email first.");
+      email.focus();
+    }else{
+      setError("For this demo, create a new account if you forgot your password.");
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setError("");
+
+    const userEmail = email.value.trim().toLowerCase();
+    const userPassword = password.value;
+
+    if(!userEmail) return setError("Enter your email.");
+    if(!userPassword) return setError("Enter your password.");
+    if(userPassword.length < 6) return setError("Password must be at least 6 characters.");
+
+    const users = getUsers();
+
+    if(mode === "signup"){
+      if(!name.value.trim()) return setError("Enter your name.");
+      if(userPassword !== confirm.value) return setError("Passwords do not match.");
+      if(users.some(u => u.email === userEmail)) return setError("That email is already registered.");
+
+      await showVerification({name:name.value.trim(), email:userEmail, password:userPassword});
+      return;
+    }
+
+    const user = users.find(u => u.email === userEmail && u.password === userPassword);
+    if(!user) return setError("Incorrect email or password. Try signing up first.");
+
+    if(remember.checked){
+      localStorage.setItem("siteflow_signed_in", "true");
+      localStorage.setItem("siteflow_current_user", userEmail);
+      localStorage.setItem("siteflow_last_account", userEmail);
+    }else{
+      sessionStorage.setItem("siteflow_signed_in", "true");
+      sessionStorage.setItem("siteflow_current_user", userEmail);
+    }
+    if(accountNeedsOnboarding(userEmail)) startOnboarding(); else showBuilder();
+  });
+
+  codeInputs.forEach((input,index)=>{
+    input.addEventListener("input",()=>{input.value=input.value.replace(/\D/g,"").slice(-1);verifyError.textContent="";if(input.value&&index<codeInputs.length-1)codeInputs[index+1].focus();});
+    input.addEventListener("keydown",e=>{if(e.key==="Backspace"&&!input.value&&index>0)codeInputs[index-1].focus();if(e.key==="ArrowLeft"&&index>0){e.preventDefault();codeInputs[index-1].focus();}if(e.key==="ArrowRight"&&index<codeInputs.length-1){e.preventDefault();codeInputs[index+1].focus();}if(e.key==="Enter")verifySubmit.click();});
+    input.addEventListener("paste",e=>{const digits=(e.clipboardData?.getData("text")||"").replace(/\D/g,"").slice(0,6);if(digits.length>1){e.preventDefault();digits.split("").forEach((d,i)=>{if(codeInputs[i])codeInputs[i].value=d;});codeInputs[Math.min(digits.length,6)-1]?.focus();}});
+  });
+  verifySubmit.addEventListener("click",async ()=>{
+    if(!pendingSignup) return showAuth();
+
+    const entered=codeInputs.map(i=>i.value).join("");
+    if(entered.length!==6){
+      verifyError.textContent="Enter all 6 digits.";
+      return;
+    }
+
+    verifyError.textContent="";
+    verifySubmit.disabled=true;
+    verifySubmit.textContent="Verifying…";
+
+    try{
+      const result=await apiRequest("/api/verify-code",{
+        email:pendingSignup.email,
+        code:entered
+      });
+
+      if(result.ok && result.verified){
+        finishVerifiedSignup();
+        return;
+      }
+
+      verifyError.textContent="That code could not be verified.";
+    }catch(err){
+      verifyError.textContent=err.message;
+      clearCodeInputs();
+      codeInputs[0]?.focus();
+    }finally{
+      verifySubmit.disabled=false;
+      verifySubmit.textContent="Verify & continue";
+    }
+  });
+
+  resendCodeBtn.addEventListener("click",async ()=>{
+    if(!pendingSignup || resendCodeBtn.disabled) return;
+    await issueVerificationCode();
+  });
+
+  verifyBackBtn.addEventListener("click",()=>{
+    clearInterval(resendTimer);
+    resendTimer=null;
+    verification.classList.remove("show");
+    auth.style.display="flex";
+    document.body.style.overflow="auto";
+    setMode("signup");
+    if(pendingSignup){
+      name.value=pendingSignup.name;
+      email.value=pendingSignup.email;
+      password.value=pendingSignup.password;
+      confirm.value=pendingSignup.password;
+    }
+  });
+
+  signOut.addEventListener("click", () => {
+    localStorage.removeItem("siteflow_signed_in");
+    localStorage.removeItem("siteflow_current_user");
+    sessionStorage.removeItem("siteflow_signed_in");
+    sessionStorage.removeItem("siteflow_current_user");
+    showAuth();
+  });
+
+  const signedIn =
+    localStorage.getItem("siteflow_signed_in") === "true" ||
+    sessionStorage.getItem("siteflow_signed_in") === "true";
+
+  refreshSavedAccounts();
+  if(signedIn){
+    const activeEmail = localStorage.getItem("siteflow_current_user") || sessionStorage.getItem("siteflow_current_user");
+    if(activeEmail && accountNeedsOnboarding(activeEmail)) startOnboarding(); else showBuilder();
+  } else showAuth();
+})();
+</script>
+
+<script id="siteflow-pro-script">
+(() => {
+  /* Onboarding */
+  const screen=document.getElementById("onboardingScreen");
+  const steps=[...screen.querySelectorAll(".onboard-step")];
+  const progress=[...screen.querySelectorAll(".onboard-progress span")];
+  const back=document.getElementById("onboardBack"), next=document.getElementById("onboardNext");
+  let step=0, answers={purpose:"",teamSize:"",vibe:""};
+  function activeEmail(){return localStorage.getItem("siteflow_current_user")||sessionStorage.getItem("siteflow_current_user")||""}
+  function getUsers(){try{return JSON.parse(localStorage.getItem("siteflow_users")||"[]")}catch{return []}}
+  function renderStep(){
+    steps.forEach((x,i)=>x.classList.toggle("active",i===step)); progress.forEach((x,i)=>x.classList.toggle("active",i<=step));
+    back.disabled=step===0; const key=steps[step].querySelector("[data-key]").dataset.key; next.disabled=!answers[key]; next.textContent=step===steps.length-1?"Finish setup":"Continue";
+    if(step===2 && answers.vibe) document.body.dataset.appTheme=answers.vibe;
+  }
+  screen.addEventListener("click",e=>{
+    const c=e.target.closest(".choice"); if(!c) return; const grid=c.closest("[data-key]"); const key=grid.dataset.key; answers[key]=c.dataset.value;
+    [...grid.querySelectorAll(".choice")].forEach(x=>x.classList.toggle("selected",x===c)); if(key==="vibe") document.body.dataset.appTheme=answers.vibe; renderStep();
+  });
+  back.addEventListener("click",()=>{if(step>0){step--;renderStep()}});
+  next.addEventListener("click",()=>{
+    const key=steps[step].querySelector("[data-key]").dataset.key; if(!answers[key]) return;
+    if(step<steps.length-1){step++;renderStep();return}
+    const users=getUsers(), email=activeEmail(), u=users.find(x=>x.email===email);
+    if(u){Object.assign(u,answers,{onboardingComplete:true});localStorage.setItem("siteflow_users",JSON.stringify(users));}
+    screen.classList.remove("show"); document.getElementById("builderApp").style.display="grid"; document.body.style.overflow="hidden";
+    const chip=document.getElementById("userChipText"), avatar=document.getElementById("userAvatar"); if(u&&chip) chip.textContent=u.name||u.email; if(u&&avatar) avatar.textContent=(u.name||u.email).slice(0,1).toUpperCase();
+  });
+  window.SiteFlowOnboarding={start(){step=0;answers={purpose:"",teamSize:"",vibe:""};screen.querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));renderStep();}};
+
+  /* Free-move mode: visual offsets preserve normal layout and export cleanly. */
+  const canvas=document.getElementById("canvas"), btn=document.getElementById("freeMoveBtn"), hint=document.getElementById("freeMoveHint");
+  let enabled=false, drag=null;
+  function setEnabled(v){enabled=v;canvas.classList.toggle("free-move-mode",v);btn.classList.toggle("active",v);btn.setAttribute("aria-pressed",String(v));hint.textContent=v?"Drag an element to position it • Esc exits":"Move any element anywhere in its section";}
+  btn.addEventListener("click",()=>setEnabled(!enabled));
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&enabled)setEnabled(false)});
+  canvas.addEventListener("pointerdown",e=>{
+    if(!enabled || e.button!==0) return;
+    const el=e.target.closest(".element"); if(!el || !canvas.contains(el) || e.target.closest("a")) return;
+    const section=el.closest(".site-section"); if(!section)return;
+    const x=Number(el.dataset.offsetX)||0,y=Number(el.dataset.offsetY)||0;
+    if(window.__siteflowSaveSnapshot) window.__siteflowSaveSnapshot();
+    drag={el,section,id:e.pointerId,startX:e.clientX,startY:e.clientY,x,y}; el.classList.add("free-dragging");
+    try{el.setPointerCapture(e.pointerId)}catch{} e.preventDefault();
+  },true);
+  canvas.addEventListener("pointermove",e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY; let nx=drag.x+dx,ny=drag.y+dy;
+    const sr=drag.section.getBoundingClientRect(),er=drag.el.getBoundingClientRect();
+    // generous bounds keep at least 24px of the element inside the section
+    const minX=-Math.max(0,er.width-24), maxX=Math.max(0,sr.width-24); const minY=-Math.max(0,er.height-24), maxY=Math.max(0,sr.height-24);
+    nx=Math.round(Math.min(maxX,Math.max(minX,nx))); ny=Math.round(Math.min(maxY,Math.max(minY,ny)));
+    drag.el.dataset.offsetX=nx;drag.el.dataset.offsetY=ny;drag.el.style.transform=`translate(${nx}px, ${ny}px)`;
+  },true);
+  function endDrag(e){if(!drag||(e&&e.pointerId!==drag.id))return;drag.el.classList.remove("free-dragging");drag=null;const selected=document.querySelector(".element.selected");if(selected){const x=document.getElementById("offsetX"),y=document.getElementById("offsetY");if(x)x.value=Number(selected.dataset.offsetX)||0;if(y)y.value=Number(selected.dataset.offsetY)||0;}}
+  canvas.addEventListener("pointerup",endDrag,true);canvas.addEventListener("pointercancel",endDrag,true);
+})();
+</script>
+
+<script id="siteflow-shortcuts">
+(() => {
+  document.addEventListener("keydown", e => {
+    const tag=(e.target.tagName||"").toLowerCase();
+    const typing=["input","textarea","select"].includes(tag) || e.target.isContentEditable;
+    const mod=e.ctrlKey||e.metaKey;
+    if(mod && e.key.toLowerCase()==="s"){e.preventDefault();document.getElementById("saveBtn")?.click();}
+    if(mod && e.key.toLowerCase()==="d" && !typing){e.preventDefault();document.querySelector(".element.selected [data-el-action=duplicate]")?.click();}
+    if((e.key==="Delete"||e.key==="Backspace") && !typing){const b=document.querySelector(".element.selected [data-el-action=delete]");if(b){e.preventDefault();b.click();}}
+  });
+})();
+</script>
+</body>
+</html>
