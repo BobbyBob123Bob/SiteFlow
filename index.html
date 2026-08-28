@@ -1064,12 +1064,6 @@ body[data-app-theme="focus"]{
 body[data-app-theme="dark"] .inspector-subtitle{color:#7f8da1;border-color:#273446}
 </style>
 
-
-<style id="siteflow-inbox-styles">
-.inbox-top-button{position:relative}.inbox-unread-badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ef476f;color:white;font-size:10px;font-weight:900}.inbox-unread-badge[hidden]{display:none!important}
-.inbox-shell{position:fixed;inset:0;z-index:220;background:#f4f7fb;display:none;grid-template-rows:68px minmax(0,1fr);color:#172033}.inbox-shell.show{display:grid}.inbox-header{height:68px;background:#fff;border-bottom:1px solid #e3e9f1;display:flex;align-items:center;justify-content:space-between;padding:0 22px;gap:14px}.inbox-title{display:flex;align-items:center;gap:12px}.inbox-title-badge{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#5b78ff,#765cf5);display:grid;place-items:center;color:#fff;font-weight:900}.inbox-title h2{margin:0;font-size:20px;letter-spacing:-.03em}.inbox-title small{display:block;color:#8a97a8;margin-top:2px}.inbox-header-actions{display:flex;gap:8px}.inbox-header-actions button{border:1px solid #dfe5ee;background:#fff;border-radius:10px;padding:9px 12px;color:#536176;font-weight:800}.inbox-layout{min-height:0;display:grid;grid-template-columns:360px minmax(0,1fr)}.inbox-sidebar{min-height:0;background:#fff;border-right:1px solid #e3e9f1;display:grid;grid-template-rows:auto auto minmax(0,1fr)}.inbox-tools{padding:14px;border-bottom:1px solid #edf1f5}.inbox-search{width:100%;height:40px;border:1px solid #dfe5ee;border-radius:11px;padding:0 12px;outline:none;background:#f8fafc}.inbox-search:focus{background:#fff;border-color:#9bafff;box-shadow:0 0 0 3px rgba(91,120,255,.10)}.inbox-filters{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid #edf1f5}.inbox-filter{border:1px solid #e1e7ef;background:#fff;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:850;color:#718096}.inbox-filter.active{background:#eef2ff;color:#5269d5;border-color:#d8e0ff}.inbox-list{min-height:0;overflow:auto}.inbox-item{width:100%;border:0;border-bottom:1px solid #edf1f5;background:#fff;padding:14px 15px;text-align:left;display:grid;gap:5px;color:#273244}.inbox-item:hover{background:#f8faff}.inbox-item.active{background:#eef3ff}.inbox-item.unread .inbox-item-subject{font-weight:900}.inbox-item-top{display:flex;justify-content:space-between;gap:12px;align-items:center}.inbox-sender{font-weight:800;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inbox-time{font-size:10px;color:#9aa5b4;white-space:nowrap}.inbox-item-subject{font-size:12px}.inbox-preview{font-size:11px;color:#7a8798;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.inbox-content{min-width:0;overflow:auto;padding:28px 34px}.inbox-empty{height:100%;min-height:300px;display:grid;place-items:center;text-align:center;color:#8a97a8}.inbox-empty strong{display:block;color:#506078;font-size:18px;margin-bottom:5px}.message-card{max-width:860px;margin:0 auto;background:#fff;border:1px solid #e3e9f1;border-radius:18px;box-shadow:0 12px 34px rgba(31,45,67,.07);overflow:hidden}.message-head{padding:24px;border-bottom:1px solid #edf1f5}.message-head h2{margin:0 0 9px;font-size:25px;letter-spacing:-.035em}.message-meta{display:flex;flex-wrap:wrap;gap:8px 18px;color:#758294;font-size:12px}.message-body{padding:25px;font-size:15px;line-height:1.7;white-space:pre-wrap;color:#344154}.message-actions{padding:14px 24px;border-top:1px solid #edf1f5;display:flex;gap:8px;flex-wrap:wrap}.message-actions button,.message-actions a{border:1px solid #dfe5ee;background:#fff;border-radius:9px;padding:8px 11px;text-decoration:none;color:#536176;font-weight:800;font-size:12px}.message-actions .danger-action{color:#c45968;border-color:#f0d8dd;background:#fff8f9}.inbox-db-warning{margin:12px 14px 0;padding:9px 10px;background:#fff7e8;border:1px solid #f3dfb4;color:#896522;border-radius:10px;font-size:11px;line-height:1.45}.inbox-db-warning[hidden]{display:none}.inbox-loading{padding:28px;text-align:center;color:#8a97a8;font-size:13px}
-@media(max-width:800px){.inbox-layout{grid-template-columns:1fr}.inbox-sidebar{border-right:0}.inbox-content{display:none}.inbox-layout.message-open .inbox-sidebar{display:none}.inbox-layout.message-open .inbox-content{display:block}.inbox-header{padding:0 12px}.inbox-content{padding:16px}.message-card{border-radius:14px}.inbox-title small{display:none}}
-</style>
 </head>
 <body>
 
@@ -1228,7 +1222,7 @@ body[data-app-theme="dark"] .inspector-subtitle{color:#7f8da1;border-color:#2734
       </button>
     </div>
 
-    <div class="top-actions"><div id="userChip" class="user-chip"><span id="userAvatar" class="user-avatar">U</span><span id="userChipText">Workspace</span></div><button id="inboxBtn" class="top-button inbox-top-button" type="button">Inbox <span id="inboxUnreadBadge" class="inbox-unread-badge" hidden>0</span></button><button id="signOutBtn" class="top-button" type="button">Sign out</button>
+    <div class="top-actions"><div id="userChip" class="user-chip"><span id="userAvatar" class="user-avatar">U</span><span id="userChipText">Workspace</span></div><button id="signOutBtn" class="top-button" type="button">Sign out</button>
       <button id="saveBtn" class="top-button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V4"/><path d="M8 21v-7h8v7"/></svg>
         Save
@@ -1328,11 +1322,6 @@ body[data-app-theme="dark"] .inspector-subtitle{color:#7f8da1;border-color:#2734
   </div>
 </div>
 
-
-<div id="siteflowInbox" class="inbox-shell" aria-hidden="true">
-  <div class="inbox-header"><div class="inbox-title"><div class="inbox-title-badge">✉</div><div><h2>Inbox</h2><small id="inboxWorkspaceName">SiteFlow messages</small></div></div><div class="inbox-header-actions"><button id="inboxRefresh" type="button">Refresh</button><button id="inboxClose" type="button">Back to editor</button></div></div>
-  <div id="inboxLayout" class="inbox-layout"><aside class="inbox-sidebar"><div><div class="inbox-tools"><input id="inboxSearch" class="inbox-search" placeholder="Search messages…"></div><div id="inboxDbWarning" class="inbox-db-warning" hidden>Inbox is using temporary memory storage. Add PostgreSQL to this Railway project for permanent messages.</div></div><div class="inbox-filters"><button class="inbox-filter active" data-inbox-filter="inbox">Inbox</button><button class="inbox-filter" data-inbox-filter="unread">Unread</button><button class="inbox-filter" data-inbox-filter="archived">Archived</button></div><div id="inboxList" class="inbox-list"><div class="inbox-loading">Open Inbox to load messages.</div></div></aside><main id="inboxContent" class="inbox-content"><div class="inbox-empty"><div><strong>No message selected</strong>Select a form submission to read it.</div></div></main></div>
-</div>
 <div id="pageModal" class="modal">
   <div class="modal-card">
     <div class="modal-head"><strong>Add a page</strong><button class="mini-button" data-close="pageModal">Close</button></div>
@@ -1711,16 +1700,8 @@ body[data-app-theme="dark"] .inspector-subtitle{color:#7f8da1;border-color:#2734
     }
     else if(type==="form"){
       const f=q(".sf-form"),inputs=qa("input",f),ta=q("textarea",f),b=q("button",f);
-      if(inputs[0]&&!inputs[0].name) inputs[0].name="name";
-      if(inputs[1]&&!inputs[1].name) inputs[1].name="email";
-      if(ta&&!ta.name) ta.name="message";
-      if(b) b.type="submit";
-      f.removeAttribute("action"); f.removeAttribute("method");
-      if(!f.dataset.formName) f.dataset.formName="Contact form";
-      if(!f.dataset.subject) f.dataset.subject="New website enquiry";
-      if(!f.dataset.successMessage) f.dataset.successMessage="Thanks! Your message has been sent.";
-      html=field("Form name","formLabel",f.dataset.formName)+field("Inbox subject","formSubject",f.dataset.subject)+area("Success message","formSuccess",f.dataset.successMessage)+two(field("Name placeholder","formName",inputs[0]?.placeholder||"Name"),field("Email placeholder","formEmail",inputs[1]?.placeholder||"Email"))+field("Message placeholder","formMsg",ta?.placeholder||"Message")+field("Button label","formBtn",b?.textContent||"Send message")+note("Submissions from the published/downloaded website are delivered to your SiteFlow Inbox. You can read, archive, search and delete them from the Inbox button in the top bar.")+two(field("Max width","formWidth",px(f,"maxWidth",620),"number",'min="240" max="1400"'),field("Field radius","formRadius",px(inputs[0],"borderRadius",11),"number",'min="0" max="60"'));
-      after=()=>{bind("formLabel","input",e=>f.dataset.formName=e.target.value);bind("formSubject","input",e=>f.dataset.subject=e.target.value);bind("formSuccess","input",e=>f.dataset.successMessage=e.target.value);bind("formName","input",e=>inputs[0].placeholder=e.target.value);bind("formEmail","input",e=>inputs[1].placeholder=e.target.value);bind("formMsg","input",e=>ta.placeholder=e.target.value);bind("formBtn","input",e=>text(b,e.target.value));bind("formWidth","input",e=>style(f,"maxWidth",e.target.value+"px"));bind("formRadius","input",e=>[...inputs,ta].forEach(x=>style(x,"borderRadius",e.target.value+"px")));};
+      html=two(field("Name placeholder","formName",inputs[0]?.placeholder||"Name"),field("Email placeholder","formEmail",inputs[1]?.placeholder||"Email"))+field("Message placeholder","formMsg",ta?.placeholder||"Message")+field("Button label","formBtn",b?.textContent||"Send message")+field("Form action URL","formAction",f?.getAttribute("action")||"")+select("Method","formMethod",[["post","POST"],["get","GET"]],(f?.getAttribute("method")||"post").toLowerCase())+two(field("Max width","formWidth",px(f,"maxWidth",620),"number",'min="240" max="1400"'),field("Field radius","formRadius",px(inputs[0],"borderRadius",11),"number",'min="0" max="60"'));
+      after=()=>{bind("formName","input",e=>inputs[0].placeholder=e.target.value);bind("formEmail","input",e=>inputs[1].placeholder=e.target.value);bind("formMsg","input",e=>ta.placeholder=e.target.value);bind("formBtn","input",e=>text(b,e.target.value));bind("formAction","input",e=>attr(f,"action",e.target.value));bind("formMethod","change",e=>attr(f,"method",e.target.value));bind("formWidth","input",e=>style(f,"maxWidth",e.target.value+"px"));bind("formRadius","input",e=>[...inputs,ta].forEach(x=>style(x,"borderRadius",e.target.value+"px")));};
     }
     else if(type==="list"){
       const box=q(".sf-list"), rows=qa(":scope > div",box);
@@ -1804,7 +1785,7 @@ body[data-app-theme="dark"] .inspector-subtitle{color:#7f8da1;border-color:#2734
       if(type==="footer") el.innerHTML = `<div class="drag-handle">Reorder</div><footer class="sf-footer"><div><div class="sf-brand" data-editable-primary>YourBrand</div><p style="opacity:.65">Build something people remember.</p></div><div><strong>Product</strong><a href="#">Features</a><a href="#">Pricing</a></div><div><strong>Company</strong><a href="#">About</a><a href="#">Contact</a></div><div><strong>Legal</strong><a href="#">Privacy</a><a href="#">Terms</a></div></footer>`;
       if(type==="gallery") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-gallery"><img src="https://picsum.photos/800/800?random=11" alt=""><img src="https://picsum.photos/500/500?random=12" alt=""><img src="https://picsum.photos/500/500?random=13" alt=""><img src="https://picsum.photos/500/500?random=14" alt=""><img src="https://picsum.photos/500/500?random=15" alt=""></div>`;
       if(type==="video") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-video" style="position:relative;aspect-ratio:16/9;background:#111827;border-radius:14px;overflow:hidden"><iframe data-video-frame src="" title="Video player" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:100%;border:0;display:block" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe><div data-video-empty style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:#111827;font-weight:800">Select this video and paste a URL →</div></div>`;
-      if(type==="form") el.innerHTML = `<div class="drag-handle">Reorder</div><form class="sf-form" data-form-name="Contact form" data-subject="New website enquiry" data-success-message="Thanks! Your message has been sent." onsubmit="return false"><div class="sf-form-row"><input name="name" placeholder="Name" required><input name="email" type="email" placeholder="Email" required></div><textarea name="message" placeholder="Message" required></textarea><div><button class="cta" type="submit" data-editable-primary>Send message</button></div><div class="sf-form-status" aria-live="polite"></div></form>`;
+      if(type==="form") el.innerHTML = `<div class="drag-handle">Reorder</div><form class="sf-form" onsubmit="return false"><div class="sf-form-row"><input placeholder="Name"><input type="email" placeholder="Email"></div><textarea placeholder="Message"></textarea><div><button class="cta" type="button" data-editable-primary>Send message</button></div></form>`;
       if(type==="list") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-list"><div><b>✓</b><span data-editable-primary>Beautiful responsive layouts</span></div><div><b>✓</b><span>Drag, reorder and free-position elements</span></div><div><b>✓</b><span>Export as a standalone website</span></div></div>`;
       if(type==="progress") el.innerHTML = `<div class="drag-handle">Reorder</div><div style="display:grid;gap:8px"><div style="display:flex;justify-content:space-between"><strong data-editable-primary>Project progress</strong><span>68%</span></div><div class="sf-progress"><span></span></div></div>`;
       if(type==="social") el.innerHTML = `<div class="drag-handle">Reorder</div><div class="sf-socials"><a href="#">X</a><a href="#">in</a><a href="#">◎</a><a href="#">▶</a></div>`;
@@ -1940,9 +1921,6 @@ body[data-app-theme="dark"] .inspector-subtitle{color:#7f8da1;border-color:#2734
 
     const firstId = pageData[0]?.id || "home";
     const dataJson = JSON.stringify(pageData).replace(/</g,"\\u003c");
-    const workspace = window.SiteFlowInbox?.getWorkspace?.() || {};
-    const workspaceId = String(workspace.workspaceId || "");
-    const formApiBase = String(location.origin || "").replace(/\/$/,"");
 
     return `<!doctype html>
 <html>
@@ -1972,7 +1950,6 @@ p{font-size:18px;line-height:1.6}
 .section-dark{background:#23272d;color:#fff}
 .cta{display:inline-block;background:#2c3137;color:#fff;padding:13px 20px;border-radius:10px;text-decoration:none;font-weight:800}
 img{max-width:100%}
-.sf-form-status{font-size:13px;min-height:18px;color:#667085}.sf-form-status.success{color:#16836f}.sf-form-status.error{color:#c43e50}.sf-form button[disabled]{opacity:.6;cursor:wait}
 @media(max-width:650px){
   section{padding:48px 22px}h1{font-size:42px}
   .nav-inner{align-items:flex-start;flex-direction:column}
@@ -2084,30 +2061,6 @@ if(hash){
     target.classList.add("active");
   }
 }
-const SITEFLOW_WORKSPACE=${JSON.stringify(workspaceId)};
-const SITEFLOW_API=${JSON.stringify(formApiBase)};
-document.querySelectorAll(".sf-form").forEach(form=>{
-  form.removeAttribute("onsubmit");
-  form.addEventListener("submit",async e=>{
-    e.preventDefault();
-    const status=form.querySelector(".sf-form-status")||(()=>{const d=document.createElement("div");d.className="sf-form-status";form.appendChild(d);return d})();
-    const button=form.querySelector('button[type="submit"],button');
-    const formInputs=[...form.querySelectorAll("input")];
-    const name=(form.querySelector('[name="name"]')||formInputs[0])?.value?.trim()||"";
-    const email=(form.querySelector('[name="email"]')||formInputs[1])?.value?.trim()||"";
-    const message=(form.querySelector('[name="message"]')||form.querySelector("textarea"))?.value?.trim()||"";
-    const page=form.closest(".page");
-    if(!SITEFLOW_WORKSPACE||!SITEFLOW_API){status.className="sf-form-status error";status.textContent="This form has not been connected to a SiteFlow inbox yet.";return}
-    button&&(button.disabled=true);status.className="sf-form-status";status.textContent="Sending…";
-    try{
-      const r=await fetch(SITEFLOW_API+"/api/form-submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceId:SITEFLOW_WORKSPACE,name,email,message,subject:form.dataset.subject||"New website enquiry",formName:form.dataset.formName||"Contact form",pageName:page?.id?.replace(/^page-/,"")||""})});
-      const data=await r.json().catch(()=>({}));
-      if(!r.ok) throw new Error(data.error||"Could not send message.");
-      form.reset();status.className="sf-form-status success";status.textContent=form.dataset.successMessage||"Thanks! Your message has been sent.";
-    }catch(err){status.className="sf-form-status error";status.textContent=err.message||"Could not send message."}
-    finally{button&&(button.disabled=false)}
-  });
-});
 <\/script>
 
 
@@ -2605,30 +2558,6 @@ document.querySelectorAll(".sf-form").forEach(form=>{
     if(mod && e.key.toLowerCase()==="d" && !typing){e.preventDefault();document.querySelector(".element.selected [data-el-action=duplicate]")?.click();}
     if((e.key==="Delete"||e.key==="Backspace") && !typing){const b=document.querySelector(".element.selected [data-el-action=delete]");if(b){e.preventDefault();b.click();}}
   });
-})();
-</script>
-<script id="siteflow-inbox-controller">
-(()=>{
-  const $=id=>document.getElementById(id);
-  const randomToken=(prefix,bytes=18)=>prefix+Array.from(crypto.getRandomValues(new Uint8Array(bytes)),b=>b.toString(16).padStart(2,"0")).join("");
-  function activeOwnerEmail(){return (localStorage.getItem("siteflow_current_user")||sessionStorage.getItem("siteflow_current_user")||"").trim().toLowerCase()}
-  function getWorkspace(){let workspaceId=localStorage.getItem("siteflow_workspace_id"),inboxKey=localStorage.getItem("siteflow_inbox_key");if(!workspaceId){workspaceId=randomToken("ws_",16);localStorage.setItem("siteflow_workspace_id",workspaceId)}if(!inboxKey){inboxKey=randomToken("key_",24);localStorage.setItem("siteflow_inbox_key",inboxKey)}return {workspaceId,inboxKey,ownerEmail:activeOwnerEmail(),projectName:$("projectName")?.value||"SiteFlow Project"}}
-  async function registerWorkspace(){const w=getWorkspace();if(!w.ownerEmail)return null;try{const r=await fetch("/api/workspaces/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(w)}),data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||"Could not connect inbox.");return data}catch(err){console.warn("SiteFlow inbox registration:",err.message);return null}}
-  window.SiteFlowInbox={getWorkspace,registerWorkspace};
-  let messages=[],filter="inbox",selectedId="";const shell=$("siteflowInbox"),list=$("inboxList"),content=$("inboxContent"),layout=$("inboxLayout"),badge=$("inboxUnreadBadge");
-  const headers=()=>({"Content-Type":"application/json","x-siteflow-inbox-key":getWorkspace().inboxKey});
-  const dateFmt=v=>{try{return new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return String(v||"")}};
-  const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-  async function unreadCount(){const w=getWorkspace();if(!w.ownerEmail)return;await registerWorkspace();try{const r=await fetch(`/api/inbox/count?workspaceId=${encodeURIComponent(w.workspaceId)}`,{headers:headers()}),d=await r.json(),n=Number(d.unread)||0;badge.textContent=n>99?"99+":String(n);badge.hidden=n<1}catch{}}
-  function visibleMessages(){const q=$("inboxSearch")?.value.trim().toLowerCase()||"";return messages.filter(m=>{if(filter==="unread"&&m.is_read)return false;if(q&&!`${m.sender_name} ${m.sender_email} ${m.subject} ${m.message} ${m.form_name} ${m.page_name}`.toLowerCase().includes(q))return false;return true})}
-  function renderList(){const rows=visibleMessages();if(!rows.length){list.innerHTML='<div class="inbox-loading">No messages here yet.</div>';return}list.innerHTML=rows.map(m=>`<button class="inbox-item ${m.is_read?"":"unread"} ${m.id===selectedId?"active":""}" data-message-id="${esc(m.id)}"><div class="inbox-item-top"><span class="inbox-sender">${esc(m.sender_name||m.sender_email)}</span><span class="inbox-time">${esc(dateFmt(m.created_at))}</span></div><div class="inbox-item-subject">${esc(m.subject||"New form submission")}</div><div class="inbox-preview">${esc(m.message||"")}</div></button>`).join("");list.querySelectorAll("[data-message-id]").forEach(b=>b.addEventListener("click",()=>openMessage(b.dataset.messageId)))}
-  function renderMessage(m){if(!m){content.innerHTML='<div class="inbox-empty"><div><strong>No message selected</strong>Select a form submission to read it.</div></div>';layout.classList.remove("message-open");return}content.innerHTML=`<article class="message-card"><div class="message-head"><h2>${esc(m.subject||"New form submission")}</h2><div class="message-meta"><span><b>From:</b> ${esc(m.sender_name)} &lt;${esc(m.sender_email)}&gt;</span><span><b>Form:</b> ${esc(m.form_name||"Contact form")}</span>${m.page_name?`<span><b>Page:</b> ${esc(m.page_name)}</span>`:""}<span>${esc(dateFmt(m.created_at))}</span></div></div><div class="message-body">${esc(m.message)}</div><div class="message-actions"><a href="mailto:${encodeURIComponent(m.sender_email)}?subject=${encodeURIComponent("Re: "+(m.subject||"Your message"))}">Reply by email</a><button id="messageReadToggle" type="button">${m.is_read?"Mark unread":"Mark read"}</button><button id="messageArchive" type="button">${m.archived?"Move to inbox":"Archive"}</button><button id="messageDelete" class="danger-action" type="button">Delete</button></div></article>`;layout.classList.add("message-open");$("messageReadToggle").addEventListener("click",()=>updateMessage(m.id,{read:!m.is_read}));$("messageArchive").addEventListener("click",()=>updateMessage(m.id,{archived:!m.archived}));$("messageDelete").addEventListener("click",()=>deleteMessage(m.id))}
-  async function openMessage(id){selectedId=id;const m=messages.find(x=>x.id===id);if(!m)return;if(!m.is_read){m.is_read=true;renderList();unreadCount();fetch(`/api/inbox/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(getWorkspace().workspaceId)}`,{method:"PATCH",headers:headers(),body:JSON.stringify({read:true})}).catch(()=>{})}renderList();renderMessage(m)}
-  async function updateMessage(id,changes){const w=getWorkspace();try{const r=await fetch(`/api/inbox/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(w.workspaceId)}`,{method:"PATCH",headers:headers(),body:JSON.stringify(changes)}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not update message.");await loadMessages()}catch(err){alert(err.message)}}
-  async function deleteMessage(id){if(!confirm("Delete this message permanently?"))return;const w=getWorkspace();try{const r=await fetch(`/api/inbox/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(w.workspaceId)}`,{method:"DELETE",headers:headers()}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not delete message.");selectedId="";await loadMessages()}catch(err){alert(err.message)}}
-  async function loadMessages(){const w=getWorkspace();if(!w.ownerEmail){list.innerHTML='<div class="inbox-loading">Sign in to use Inbox.</div>';return}const reg=await registerWorkspace();$("inboxDbWarning").hidden=reg?.persistent!==false;$("inboxWorkspaceName").textContent=w.projectName+" · "+w.ownerEmail;list.innerHTML='<div class="inbox-loading">Loading messages…</div>';try{const archived=filter==="archived",r=await fetch(`/api/inbox?workspaceId=${encodeURIComponent(w.workspaceId)}&archived=${archived}`,{headers:headers()}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not load inbox.");messages=Array.isArray(d.messages)?d.messages:[];$("inboxDbWarning").hidden=!!d.persistent;const keep=messages.find(m=>m.id===selectedId);if(!keep)selectedId="";renderList();renderMessage(keep||null);unreadCount()}catch(err){list.innerHTML=`<div class="inbox-loading">${esc(err.message)}</div>`;renderMessage(null)}}
-  function openInbox(){shell.classList.add("show");shell.setAttribute("aria-hidden","false");loadMessages()}function closeInbox(){shell.classList.remove("show");shell.setAttribute("aria-hidden","true");layout.classList.remove("message-open")}
-  $("inboxBtn")?.addEventListener("click",openInbox);$("inboxClose")?.addEventListener("click",closeInbox);$("inboxRefresh")?.addEventListener("click",loadMessages);$("inboxSearch")?.addEventListener("input",renderList);document.querySelectorAll("[data-inbox-filter]").forEach(btn=>btn.addEventListener("click",()=>{filter=btn.dataset.inboxFilter;document.querySelectorAll("[data-inbox-filter]").forEach(x=>x.classList.toggle("active",x===btn));selectedId="";loadMessages()}));document.addEventListener("keydown",e=>{if(e.key==="Escape"&&shell.classList.contains("show"))closeInbox()});$("projectName")?.addEventListener("change",registerWorkspace);setTimeout(()=>registerWorkspace().then(unreadCount),800);setInterval(unreadCount,60000);
 })();
 </script>
 </body>
