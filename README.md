@@ -1,34 +1,39 @@
-# SiteFlow — Builder + Inbox
+# SiteFlow Collaboration Backend
 
-This build includes the visual SiteFlow editor, AgentMail email verification, editable elements, working YouTube/Vimeo video embeds, and a built-in form-submission Inbox.
+This is the backend foundation for SiteFlow Collaboration.
 
-## Railway setup
+## Added
+- Email invitations through a separate AgentMail inbox/API key
+- Secure, hashed 7-day invitation tokens
+- PostgreSQL tables for pending invitations and collaborators
+- Owner-only invite/member management using SiteFlow's existing workspace inbox key
+- Roles: `editor`, `content`, `viewer`
+- Accept-invite endpoint that gives the collaborator a unique access key
+- Change role, remove collaborator, revoke pending invite
+- Invitation preview endpoint for the future accept-invite UI
+- `/api/collaboration/me` endpoint for validating collaborator access
+- In-memory fallback for development when PostgreSQL is unavailable
 
-1. Deploy this folder from GitHub to Railway.
-2. In the SiteFlow service Variables, keep/add:
-   - `AGENTMAIL_API_KEY`
-   - `AGENTMAIL_INBOX=siteflow.verify@agentmail.to`
-   - `VERIFICATION_SECRET=<a long random secret>`
-3. In the same Railway project, add a **PostgreSQL** database service. Railway normally exposes `DATABASE_URL` to connected services; if it is not automatically available to the SiteFlow service, add a `DATABASE_URL` variable referencing the PostgreSQL service connection URL.
-4. Redeploy SiteFlow.
-5. Open `/api/health`. `databaseConfigured` should be `true` for persistent inbox storage.
+## Railway variables
+Keep your existing variables and add:
 
-## How the Inbox works
+COLLAB_AGENTMAIL_API_KEY=YOUR_SECOND_AGENTMAIL_KEY
+COLLAB_AGENTMAIL_INBOX=siteflow.collaboration@agentmail.to
+SITEFLOW_APP_URL=https://YOUR-SITEFLOW-DOMAIN
 
-When the owner is signed into SiteFlow, the editor creates a private inbox key and registers the current workspace with the backend. Downloaded/previewed SiteFlow websites contain only the public workspace ID, never the private inbox key.
+Do not commit either AgentMail API key to GitHub.
 
-Visitors submit a Form element -> `/api/form-submit` stores the message -> the owner opens **Inbox** in SiteFlow to read it.
+## Main endpoints
+POST   /api/collaboration/invites
+GET    /api/collaboration
+GET    /api/collaboration/invites/preview?token=...
+POST   /api/collaboration/invites/accept
+PATCH  /api/collaboration/members/:id
+DELETE /api/collaboration/members/:id
+DELETE /api/collaboration/invites/:id
+GET    /api/collaboration/me
 
-Inbox supports unread/read state, search, Inbox/Unread/Archived filters, archiving, deleting, timestamps, sender details, form/page details, and a Reply-by-email action.
+The owner-only endpoints require the existing `x-siteflow-inbox-key` header and `workspaceId`.
+Collaborator validation uses `x-siteflow-collab-email` and `x-siteflow-collab-key`.
 
-If PostgreSQL is not configured, SiteFlow still starts and the Inbox works temporarily in memory, but messages will be lost when Railway restarts the service. Add PostgreSQL for permanent storage.
-
-## Form element
-
-Select a Form in the editor to configure its form name, inbox subject, success message, placeholders, button label, width, and field radius. Exported/downloaded sites automatically send submissions back to the Railway-hosted SiteFlow inbox API.
-
-## Security notes
-
-- Never commit the AgentMail API key to GitHub.
-- The private SiteFlow inbox key stays in the owner's browser storage and is not embedded into exported sites.
-- Form submission endpoints are rate-limited and validate message/email fields.
+This version builds the secure membership/invitation layer first. Shared project document syncing/live editing should be added after this layer is deployed and tested.
