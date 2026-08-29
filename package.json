@@ -2,7 +2,7 @@
   "name": "siteflow-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "SiteFlow builder with AgentMail verification and PostgreSQL inbox",
+  "description": "SiteFlow builder with AgentMail verification, PostgreSQL inbox, collaboration, and shared project syncing",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
