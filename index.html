@@ -1783,18 +1783,28 @@ body[data-app-theme="dark"] #dashboardScreen,body[data-app-theme="focus"] #dashb
 </div>
 
 <div id="publishModal" class="modal">
-  <div class="modal-card">
-    <div class="modal-head"><strong>Ready to publish</strong><button class="mini-button" data-close="publishModal">Close</button></div>
+  <div class="modal-card sf-publish-card">
+    <div class="modal-head"><div><strong>Publish website</strong><div class="sf-publish-subtitle">Give your website its own SiteFlow address.</div></div><button class="mini-button" data-close="publishModal">Close</button></div>
     <div class="modal-body">
-      <p style="margin-top:0;color:#626b75;line-height:1.6">Your site is ready. Download the finished site as one HTML file. It includes all of your pages and works without extra files.</p>
-      <div class="modal-actions">
-        <button id="publishDownloadBtn" class="top-button primary">Download site</button>
+      <label class="sf-publish-label" for="publishSlug">Site address</label>
+      <div class="sf-domain-row"><input id="publishSlug" autocomplete="off" spellcheck="false" placeholder="my-awesome-site"><span id="publishDomainSuffix">.your-domain.com</span></div>
+      <div id="publishAvailability" class="sf-publish-status">Choose a unique address for your website.</div>
+      <div id="publishLiveBox" class="sf-live-box" hidden><div><span class="sf-live-dot"></span><strong>Published</strong><small id="publishLiveUrl"></small></div><a id="publishVisitLink" class="top-button" target="_blank" rel="noopener">View site ↗</a></div>
+      <div class="sf-publish-note">Publishing creates a live snapshot. You can keep editing without changing the live website until you publish again.</div>
+      <div class="modal-actions sf-publish-actions">
+        <button id="publishDownloadBtn" class="top-button">Download HTML</button>
+        <button id="unpublishSiteBtn" class="top-button" hidden>Unpublish</button>
+        <button id="publishSiteBtn" class="top-button primary">Publish site</button>
       </div>
     </div>
   </div>
 </div>
 
 
+
+<style id="siteflow-publishing-styles">
+.sf-publish-card{width:min(560px,calc(100vw - 32px))}.sf-publish-subtitle{font-size:11px;color:#8a919b;margin-top:4px}.sf-publish-label{display:block;font-size:11px;font-weight:850;color:#555d68;margin-bottom:7px}.sf-domain-row{display:flex;align-items:center;border:1px solid #dfe3e8;border-radius:12px;background:#fff;overflow:hidden;transition:.16s}.sf-domain-row:focus-within{border-color:#7867ef;box-shadow:0 0 0 3px rgba(108,90,235,.10)}.sf-domain-row input{min-width:0;flex:1;border:0;outline:0;padding:12px 13px;font:inherit;font-weight:750;background:transparent}.sf-domain-row span{padding:0 13px 0 4px;color:#858d98;font-size:12px;white-space:nowrap}.sf-publish-status{min-height:19px;margin-top:8px;font-size:11px;color:#8a919a}.sf-publish-status.good{color:#16816d}.sf-publish-status.bad{color:#bd4e62}.sf-publish-status.checking{color:#806f39}.sf-live-box{margin-top:18px;padding:12px;border:1px solid #dfe9e5;background:#f7fcfa;border-radius:13px;display:flex;align-items:center;justify-content:space-between;gap:12px}.sf-live-box[hidden]{display:none}.sf-live-box>div{min-width:0}.sf-live-box strong{font-size:12px}.sf-live-box small{display:block;color:#6e7b76;font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:330px}.sf-live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#19a77f;margin-right:6px;box-shadow:0 0 0 3px rgba(25,167,127,.11)}.sf-publish-note{margin-top:16px;padding:11px 12px;background:#f7f7fa;border:1px solid #ececf1;border-radius:11px;color:#777f89;font-size:11px;line-height:1.5}.sf-publish-actions{justify-content:flex-end;flex-wrap:wrap}.sf-publish-actions #unpublishSiteBtn{color:#a84d5b}
+</style>
 <style id="siteflow-collaboration-styles">
 .sf-share-btn{border-color:#ddd7ff!important;background:linear-gradient(180deg,#fff,#faf8ff)!important;color:#6252d8!important;font-weight:850!important}.sf-share-btn:hover{box-shadow:0 0 0 3px rgba(118,92,245,.09)}
 .sf-collab-modal{position:fixed;inset:0;z-index:5000;background:rgba(18,17,29,.43);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px}.sf-collab-modal.show{display:flex}.sf-collab-card{width:min(680px,100%);max-height:min(760px,92vh);overflow:auto;background:#fff;border:1px solid #e7e3f2;border-radius:22px;box-shadow:0 28px 90px rgba(35,27,70,.22)}.sf-collab-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;border-bottom:1px solid #eeeaf5}.sf-collab-head h2{margin:0;font-size:21px;letter-spacing:-.03em}.sf-collab-head p{margin:4px 0 0;color:#858096;font-size:12px}.sf-close{width:34px;height:34px;border:1px solid #e6e1ef;background:#fff;border-radius:10px;font-size:20px;cursor:pointer}.sf-collab-body{padding:22px 24px 26px}.sf-invite-row{display:grid;grid-template-columns:minmax(0,1fr) 130px auto;gap:8px}.sf-invite-row input,.sf-invite-row select,.sf-accept-input{height:42px;border:1px solid #ddd8e8;border-radius:11px;padding:0 12px;background:#fff;outline:none}.sf-invite-row input:focus,.sf-invite-row select:focus,.sf-accept-input:focus{border-color:#8975f7;box-shadow:0 0 0 3px rgba(121,94,238,.10)}.sf-purple-btn{height:42px;border:0;border-radius:11px;background:linear-gradient(135deg,#725ff5,#a54fe7);color:white;padding:0 16px;font-weight:850;cursor:pointer}.sf-purple-btn:disabled{opacity:.55;cursor:wait}.sf-collab-note{margin-top:8px;color:#8a8598;font-size:11px;line-height:1.5}.sf-collab-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9a94a8;font-weight:900;margin:24px 0 9px}.sf-collab-list{display:grid;gap:8px}.sf-person{display:flex;align-items:center;gap:11px;border:1px solid #eeeaf4;border-radius:13px;padding:11px 12px}.sf-person-avatar{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#dff8ff,#efe1ff,#ffe5db);font-weight:900;color:#564b75}.sf-person-main{min-width:0;flex:1}.sf-person-main b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-person-main small{display:block;color:#9690a2;margin-top:2px}.sf-role-select{height:32px;border:1px solid #e2ddeb;border-radius:9px;background:#fff;padding:0 8px;font-size:11px}.sf-text-btn{border:0;background:transparent;color:#786d8b;font-weight:800;font-size:11px;cursor:pointer;padding:6px}.sf-text-btn.danger{color:#bf5868}.sf-collab-status{min-height:18px;margin-top:10px;font-size:12px;color:#786d8b}.sf-collab-status.error{color:#bf435a}.sf-collab-status.success{color:#16816d}.sf-sync-pill{font-size:10px;font-weight:850;border:1px solid #e4def2;border-radius:999px;padding:5px 8px;color:#746b84;background:#fff}.sf-sync-pill.live{color:#157a68;background:#effbf7;border-color:#cfeee6}.sf-sync-pill.warn{color:#a27018;background:#fff8e7;border-color:#f0dfb2}
@@ -2587,7 +2597,44 @@ document.querySelectorAll(".sf-form").forEach(form=>{
     setTimeout(()=>URL.revokeObjectURL(url),10000);
   });
 
-  $("publishBtn").addEventListener("click",()=>$("publishModal").classList.add("show"));
+  const SiteFlowPublishing=(()=>{
+    const slugInput=$("publishSlug"),status=$("publishAvailability"),suffix=$("publishDomainSuffix"),liveBox=$("publishLiveBox"),liveUrl=$("publishLiveUrl"),visit=$("publishVisitLink"),publishBtn=$("publishSiteBtn"),unpublishBtn=$("unpublishSiteBtn");
+    let rootDomain="",currentSlug="",published=false,checkTimer=0,lastAvailable=false;
+    const normalize=v=>String(v||"").trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-+|-+$/g,"").replace(/-+/g,"-").slice(0,63);
+    const suggested=()=>normalize($("projectName")?.value||"my-website")||"my-website";
+    function access(){
+      try{const c=JSON.parse(localStorage.getItem("siteflow_collaboration_access")||"null");if(c?.workspaceId&&c?.email&&c?.key)return{workspaceId:c.workspaceId,headers:{"x-siteflow-collab-email":c.email,"x-siteflow-collab-key":c.key},role:c.role||"viewer"}}catch{}
+      const w=window.SiteFlowInbox?.getWorkspace?.()||{};
+      return{workspaceId:w.workspaceId||localStorage.getItem("siteflow_workspace_id")||"",headers:{"x-siteflow-inbox-key":w.inboxKey||localStorage.getItem("siteflow_inbox_key")||""},role:"owner"};
+    }
+    function setStatus(text,type=""){status.textContent=text;status.className="sf-publish-status"+(type?" "+type:"")}
+    function showLive(data){published=!!data?.published;currentSlug=data?.slug||currentSlug;const url=data?.url||((rootDomain&&currentSlug)?`https://${currentSlug}.${rootDomain}`:"");liveBox.hidden=!published;unpublishBtn.hidden=!published;if(url){liveUrl.textContent=url;visit.href=url}publishBtn.textContent=published?"Publish changes":"Publish site"}
+    async function loadStatus(){
+      const a=access();if(!a.workspaceId)return;
+      try{const r=await fetch(`/api/sites/status?workspaceId=${encodeURIComponent(a.workspaceId)}`,{headers:a.headers}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not load publishing status.");rootDomain=d.rootDomain||rootDomain;suffix.textContent=rootDomain?`.`+rootDomain:".siteflow domain";currentSlug=d.slug||"";slugInput.value=currentSlug||suggested();showLive(d);await checkSlug()}catch(err){setStatus(err.message,"bad")}
+    }
+    async function checkSlug(){
+      const slug=normalize(slugInput.value);slugInput.value=slug;lastAvailable=false;if(!slug){setStatus("Enter a site address.","bad");return}
+      if(slug===currentSlug){lastAvailable=true;setStatus(published?"This is your current live address.":"This address is assigned to this project.","good");return}
+      setStatus("Checking availability…","checking");
+      try{const r=await fetch(`/api/sites/check-slug?slug=${encodeURIComponent(slug)}`),d=await r.json().catch(()=>({}));rootDomain=d.rootDomain||rootDomain;if(rootDomain)suffix.textContent="."+rootDomain;if(!r.ok)throw new Error(d.error||"That address is not available.");lastAvailable=!!d.available;setStatus(d.available?`${d.url||slug+"."+rootDomain} is available.`:"That SiteFlow address is already taken.",d.available?"good":"bad")}catch(err){setStatus(err.message,"bad")}
+    }
+    async function publish(){
+      const a=access(),slug=normalize(slugInput.value);if(!a.workspaceId){toast("Open a SiteFlow project first");return}if(a.role==="viewer"||a.role==="content"){setStatus("Only an owner or editor can publish this website.","bad");return}
+      if(slug!==currentSlug&&!lastAvailable){await checkSlug();if(!lastAvailable)return}
+      publishBtn.disabled=true;publishBtn.textContent="Publishing…";setStatus("Creating your live website…","checking");
+      try{window.SiteFlowProjectBridge?.getState?.();const html=buildStandalone();const r=await fetch("/api/sites/publish",{method:"POST",headers:{"Content-Type":"application/json",...a.headers},body:JSON.stringify({workspaceId:a.workspaceId,slug,html})}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not publish website.");currentSlug=d.slug;published=true;lastAvailable=true;showLive(d);setStatus(`Live at ${d.url}`,"good");toast("Website published");window.SiteFlowDashboard?.recordActivity?.(`Published ${$("projectName").value||"website"}`,"↗")}catch(err){setStatus(err.message,"bad")}finally{publishBtn.disabled=false;publishBtn.textContent=published?"Publish changes":"Publish site"}
+    }
+    async function unpublish(){
+      const a=access();if(a.role!=="owner"){setStatus("Only the owner can unpublish this website.","bad");return}unpublishBtn.disabled=true;
+      try{const r=await fetch("/api/sites/unpublish",{method:"POST",headers:{"Content-Type":"application/json",...a.headers},body:JSON.stringify({workspaceId:a.workspaceId})}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not unpublish website.");published=false;showLive({published:false,slug:currentSlug});setStatus("Website unpublished. Your address is still reserved for this project.");toast("Website unpublished")}catch(err){setStatus(err.message,"bad")}finally{unpublishBtn.disabled=false}
+    }
+    slugInput.addEventListener("input",()=>{clearTimeout(checkTimer);slugInput.value=normalize(slugInput.value);checkTimer=setTimeout(checkSlug,350)});
+    publishBtn.addEventListener("click",publish);unpublishBtn.addEventListener("click",unpublish);
+    return{open(){ $("publishModal").classList.add("show");loadStatus()},loadStatus};
+  })();
+  window.SiteFlowPublishing=SiteFlowPublishing;
+  $("publishBtn").addEventListener("click",()=>SiteFlowPublishing.open());
 
   $("undoBtn").addEventListener("click",()=>{
     if(!history.length){toast("Nothing to undo");return;}
