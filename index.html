@@ -1508,6 +1508,7 @@ body.sf-inbox-mode [data-view="inbox"]{
     </div>
 
     <div class="top-actions"><div id="userChip" class="user-chip"><span id="userAvatar" class="user-avatar">U</span><span id="userChipText">Workspace</span></div><button id="signOutBtn" class="top-button" type="button">Sign out</button>
+      <button id="shareBtn" class="top-button sf-share-btn" type="button"><span style="font-size:16px">♢</span> Share</button>
       <button id="saveBtn" class="top-button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V4"/><path d="M8 21v-7h8v7"/></svg>
         Save
@@ -1717,6 +1718,16 @@ body.sf-inbox-mode [data-view="inbox"]{
     </div>
   </div>
 </div>
+
+
+<style id="siteflow-collaboration-styles">
+.sf-share-btn{border-color:#ddd7ff!important;background:linear-gradient(180deg,#fff,#faf8ff)!important;color:#6252d8!important;font-weight:850!important}.sf-share-btn:hover{box-shadow:0 0 0 3px rgba(118,92,245,.09)}
+.sf-collab-modal{position:fixed;inset:0;z-index:5000;background:rgba(18,17,29,.43);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px}.sf-collab-modal.show{display:flex}.sf-collab-card{width:min(680px,100%);max-height:min(760px,92vh);overflow:auto;background:#fff;border:1px solid #e7e3f2;border-radius:22px;box-shadow:0 28px 90px rgba(35,27,70,.22)}.sf-collab-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;border-bottom:1px solid #eeeaf5}.sf-collab-head h2{margin:0;font-size:21px;letter-spacing:-.03em}.sf-collab-head p{margin:4px 0 0;color:#858096;font-size:12px}.sf-close{width:34px;height:34px;border:1px solid #e6e1ef;background:#fff;border-radius:10px;font-size:20px;cursor:pointer}.sf-collab-body{padding:22px 24px 26px}.sf-invite-row{display:grid;grid-template-columns:minmax(0,1fr) 130px auto;gap:8px}.sf-invite-row input,.sf-invite-row select,.sf-accept-input{height:42px;border:1px solid #ddd8e8;border-radius:11px;padding:0 12px;background:#fff;outline:none}.sf-invite-row input:focus,.sf-invite-row select:focus,.sf-accept-input:focus{border-color:#8975f7;box-shadow:0 0 0 3px rgba(121,94,238,.10)}.sf-purple-btn{height:42px;border:0;border-radius:11px;background:linear-gradient(135deg,#725ff5,#a54fe7);color:white;padding:0 16px;font-weight:850;cursor:pointer}.sf-purple-btn:disabled{opacity:.55;cursor:wait}.sf-collab-note{margin-top:8px;color:#8a8598;font-size:11px;line-height:1.5}.sf-collab-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9a94a8;font-weight:900;margin:24px 0 9px}.sf-collab-list{display:grid;gap:8px}.sf-person{display:flex;align-items:center;gap:11px;border:1px solid #eeeaf4;border-radius:13px;padding:11px 12px}.sf-person-avatar{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#dff8ff,#efe1ff,#ffe5db);font-weight:900;color:#564b75}.sf-person-main{min-width:0;flex:1}.sf-person-main b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sf-person-main small{display:block;color:#9690a2;margin-top:2px}.sf-role-select{height:32px;border:1px solid #e2ddeb;border-radius:9px;background:#fff;padding:0 8px;font-size:11px}.sf-text-btn{border:0;background:transparent;color:#786d8b;font-weight:800;font-size:11px;cursor:pointer;padding:6px}.sf-text-btn.danger{color:#bf5868}.sf-collab-status{min-height:18px;margin-top:10px;font-size:12px;color:#786d8b}.sf-collab-status.error{color:#bf435a}.sf-collab-status.success{color:#16816d}.sf-sync-pill{font-size:10px;font-weight:850;border:1px solid #e4def2;border-radius:999px;padding:5px 8px;color:#746b84;background:#fff}.sf-sync-pill.live{color:#157a68;background:#effbf7;border-color:#cfeee6}.sf-sync-pill.warn{color:#a27018;background:#fff8e7;border-color:#f0dfb2}
+.sf-invite-screen{position:fixed;inset:0;z-index:6000;background:radial-gradient(circle at 30% 15%,#f3ebff 0,#f7f7fb 38%,#f1f4f8 100%);display:none;place-items:center;padding:24px}.sf-invite-screen.show{display:grid}.sf-invite-card{width:min(520px,100%);background:#fff;border:1px solid #e7e4ee;border-radius:24px;padding:30px;box-shadow:0 24px 80px rgba(44,38,67,.15)}.sf-invite-logo{font-size:15px;font-weight:950;margin-bottom:24px}.sf-invite-card h1{font-size:27px;margin:0 0 10px;letter-spacing:-.04em}.sf-invite-card p{font-size:14px;color:#756f7f;line-height:1.6;margin:0 0 20px}.sf-invite-meta{display:grid;gap:7px;background:#f8f7fb;border:1px solid #ece9f2;border-radius:14px;padding:13px;margin-bottom:18px;font-size:12px}.sf-invite-meta div{display:flex;justify-content:space-between;gap:12px}.sf-invite-meta span{color:#9891a2}.sf-invite-actions{display:grid;grid-template-columns:1fr auto;gap:8px}.sf-readonly #canvas{pointer-events:none;filter:saturate(.92)}.sf-readonly #saveBtn{opacity:.45;pointer-events:none}.sf-readonly .left.rail-flyout button:not(.rail-close),.sf-readonly #freeMoveBtn{opacity:.5;pointer-events:none}.sf-readonly-badge{display:none;font-size:10px;font-weight:900;padding:5px 8px;border-radius:999px;background:#fff5d9;color:#8b671f;border:1px solid #f1dfab}.sf-readonly .sf-readonly-badge{display:inline-block}
+@media(max-width:720px){.sf-invite-row{grid-template-columns:1fr 115px}.sf-invite-row .sf-purple-btn{grid-column:1/-1}.sf-person{align-items:flex-start;flex-wrap:wrap}.sf-role-select{margin-left:45px}.sf-invite-actions{grid-template-columns:1fr}.sf-invite-actions button{width:100%}}
+</style>
+<div id="collabModal" class="sf-collab-modal" aria-hidden="true"><div class="sf-collab-card"><div class="sf-collab-head"><div><h2>SiteFlow Collaboration</h2><p>Invite people and work from the same shared project.</p></div><div style="display:flex;align-items:center;gap:8px"><span id="syncPill" class="sf-sync-pill">Local</span><span class="sf-readonly-badge">VIEW ONLY</span><button id="collabClose" class="sf-close">×</button></div></div><div class="sf-collab-body"><div id="ownerInviteArea"><div class="sf-invite-row"><input id="collabEmail" type="email" placeholder="teammate@example.com"><select id="collabRole"><option value="editor">Editor</option><option value="content">Content</option><option value="viewer">Viewer</option></select><button id="collabInviteBtn" class="sf-purple-btn">Send invite</button></div><div class="sf-collab-note">Editors and Content members can save changes. Viewers can only open the project. Only the owner can manage access.</div></div><div id="collabStatus" class="sf-collab-status"></div><div class="sf-collab-section-title">People with access</div><div id="collabMembers" class="sf-collab-list"><div class="sf-collab-note">Loading…</div></div><div id="pendingTitle" class="sf-collab-section-title">Pending invitations</div><div id="collabInvites" class="sf-collab-list"></div></div></div></div>
+<div id="inviteScreen" class="sf-invite-screen"><div class="sf-invite-card"><div class="sf-invite-logo">SiteFlow Collaboration</div><h1>You’ve been invited</h1><p id="inviteIntro">Loading your invitation…</p><div id="inviteMeta" class="sf-invite-meta" hidden></div><div class="sf-invite-actions"><input id="inviteEmail" class="sf-accept-input" type="email" placeholder="Email used for this invitation"><button id="acceptInviteBtn" class="sf-purple-btn">Accept invitation</button></div><div id="inviteStatus" class="sf-collab-status"></div></div></div>
 
 <div id="notice" class="notice"></div>
 
@@ -2521,6 +2532,21 @@ document.querySelectorAll(".sf-form").forEach(form=>{
     currentPageId = state.currentPageId;
     loadPage(currentPageId,false,false);
   });
+
+
+  window.SiteFlowProjectBridge = {
+    getState(){ persistCurrent(); return { projectName:$("projectName").value || "SiteFlow", pages:JSON.parse(JSON.stringify(pages)), currentPageId }; },
+    applyState(state){
+      if(!state || !Array.isArray(state.pages) || !state.pages.length) return false;
+      pages = JSON.parse(JSON.stringify(state.pages));
+      currentPageId = state.currentPageId && pages.some(p=>p.id===state.currentPageId) ? state.currentPageId : pages[0].id;
+      $("projectName").value = state.projectName || "SiteFlow";
+      history=[]; future=[]; loadPage(currentPageId,false,false);
+      try{localStorage.setItem("siteforge_pastel_project",JSON.stringify({projectName:$("projectName").value,pages,currentPageId}))}catch{}
+      return true;
+    },
+    notify(message){ toast(message); }
+  };
 
   loadSaved();
   loadPage(currentPageId,false,false);
@@ -3450,6 +3476,62 @@ document.querySelectorAll(".sf-form").forEach(form=>{
 
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",install);
   else install();
+})();
+</script>
+
+
+<script id="siteflow-collaboration-controller">
+(()=>{
+  const $=id=>document.getElementById(id), modal=$("collabModal"), status=$("collabStatus"), syncPill=$("syncPill");
+  const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  const ownerWorkspace=()=>window.SiteFlowInbox?.getWorkspace?.()||{};
+  function activeUser(){return (localStorage.getItem("siteflow_current_user")||sessionStorage.getItem("siteflow_current_user")||"").trim().toLowerCase()}
+  function getCollabAccess(){try{return JSON.parse(localStorage.getItem("siteflow_collaboration_access")||"null")}catch{return null}}
+  function setCollabAccess(v){localStorage.setItem("siteflow_collaboration_access",JSON.stringify(v))}
+  function accessContext(){const c=getCollabAccess();if(c?.workspaceId&&c?.key&&c?.email)return {workspaceId:c.workspaceId,role:c.role||"viewer",type:"collaborator",headers:{"Content-Type":"application/json","x-siteflow-collab-email":c.email,"x-siteflow-collab-key":c.key}};const w=ownerWorkspace();return {workspaceId:w.workspaceId,role:"owner",type:"owner",headers:{"Content-Type":"application/json","x-siteflow-inbox-key":w.inboxKey}}}
+  let revision=0,lastServerUpdate="",syncBusy=false,dirty=false,lastAppliedSignature="";
+  const setStatus=(text,kind="")=>{status.textContent=text;status.className="sf-collab-status"+(kind?" "+kind:"")};
+  function setSync(text,kind=""){syncPill.textContent=text;syncPill.className="sf-sync-pill"+(kind?" "+kind:"")}
+  function applyRole(){const ctx=accessContext(),read=ctx.role==="viewer";document.body.classList.toggle("sf-readonly",read);$("ownerInviteArea").style.display=ctx.type==="owner"?"":"none";$("pendingTitle").style.display=ctx.type==="owner"?"":"none";$("collabInvites").style.display=ctx.type==="owner"?"":"none";if(read)setSync("View only","warn")}
+  async function ensureOwnerWorkspace(){if(accessContext().type!=="owner")return;await window.SiteFlowInbox?.registerWorkspace?.()}
+  async function loadShared(force=false){
+    const bridge=window.SiteFlowProjectBridge;if(!bridge||syncBusy)return;const ctx=accessContext();if(!ctx.workspaceId)return;
+    syncBusy=true;try{await ensureOwnerWorkspace();const r=await fetch(`/api/project-state?workspaceId=${encodeURIComponent(ctx.workspaceId)}`,{headers:ctx.headers}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not load shared project.");
+      revision=Number(d.revision)||0;applyRole();if(d.state){const sig=JSON.stringify(d.state);if(force||(!dirty&&sig!==lastAppliedSignature)){bridge.applyState(d.state);lastAppliedSignature=sig;dirty=false}lastServerUpdate=d.updatedAt||"";setSync(ctx.role==="viewer"?"View only":"Synced",ctx.role==="viewer"?"warn":"live")}else if(ctx.type==="owner"){await saveShared(true)}else setSync("Waiting for owner","warn");
+    }catch(e){console.warn(e);setSync("Sync offline","warn")}finally{syncBusy=false}
+  }
+  async function saveShared(initial=false){
+    const bridge=window.SiteFlowProjectBridge,ctx=accessContext();if(!bridge||syncBusy||ctx.role==="viewer")return false;syncBusy=true;setSync("Saving…");
+    try{await ensureOwnerWorkspace();const state=bridge.getState(),r=await fetch(`/api/project-state?workspaceId=${encodeURIComponent(ctx.workspaceId)}`,{method:"PUT",headers:ctx.headers,body:JSON.stringify({workspaceId:ctx.workspaceId,revision,state})}),d=await r.json().catch(()=>({}));
+      if(r.status===409){dirty=false;setSync("Updated elsewhere","warn");await new Promise(x=>setTimeout(x,100));syncBusy=false;await loadShared(true);bridge.notify?.("Loaded newer shared changes");return false}
+      if(!r.ok)throw new Error(d.error||"Could not sync project.");revision=Number(d.revision)||revision+1;lastAppliedSignature=JSON.stringify(state);dirty=false;lastServerUpdate=d.updatedAt||"";setSync("Synced","live");if(!initial)bridge.notify?.("Saved & synced");return true;
+    }catch(e){setSync("Sync failed","warn");if(!initial)bridge.notify?.(e.message);return false}finally{syncBusy=false}
+  }
+  function markDirty(){if(accessContext().role==="viewer")return;dirty=true;setSync("Unsaved","warn")}
+  const canvas=$("canvas");if(canvas){new MutationObserver(()=>markDirty()).observe(canvas,{subtree:true,childList:true,attributes:true,characterData:true})}$("projectName")?.addEventListener("input",markDirty);
+  $("saveBtn")?.addEventListener("click",()=>setTimeout(()=>saveShared(false),20));
+  setInterval(()=>{if(dirty&&!syncBusy)saveShared(true)},2500);setInterval(()=>{if(!dirty&&!syncBusy)loadShared(false)},5000);
+
+  function personRow(email,role,label,id,editable){return `<div class="sf-person"><div class="sf-person-avatar">${esc((email||"?").slice(0,1).toUpperCase())}</div><div class="sf-person-main"><b>${esc(email||"Unknown")}</b><small>${esc(label||role)}</small></div>${editable?`<select class="sf-role-select" data-member-role="${esc(id)}"><option value="editor" ${role==="editor"?"selected":""}>Editor</option><option value="content" ${role==="content"?"selected":""}>Content</option><option value="viewer" ${role==="viewer"?"selected":""}>Viewer</option></select><button class="sf-text-btn danger" data-remove-member="${esc(id)}">Remove</button>`:`<span class="sf-sync-pill">${esc(role)}</span>`}</div>`}
+  async function loadCollaboration(){
+    const ctx=accessContext();applyRole();if(ctx.type!=="owner"){$("collabMembers").innerHTML=personRow(getCollabAccess()?.email,ctx.role,"Your access","",false);return}
+    await ensureOwnerWorkspace();try{const r=await fetch(`/api/collaboration?workspaceId=${encodeURIComponent(ctx.workspaceId)}`,{headers:ctx.headers}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not load collaborators.");
+      $("collabMembers").innerHTML=personRow(d.owner?.email,"owner","Project owner","",false)+(d.members||[]).map(m=>personRow(m.email,m.role,"Collaborator",m.id,true)).join("");
+      const pending=(d.invites||[]).filter(i=>i.status==="pending");$("collabInvites").innerHTML=pending.length?pending.map(i=>`<div class="sf-person"><div class="sf-person-avatar">✉</div><div class="sf-person-main"><b>${esc(i.email)}</b><small>${esc(i.role)} · invite pending</small></div><button class="sf-text-btn danger" data-revoke-invite="${esc(i.id)}">Cancel</button></div>`).join(""):'<div class="sf-collab-note">No pending invitations.</div>';
+      document.querySelectorAll("[data-member-role]").forEach(s=>s.addEventListener("change",()=>changeRole(s.dataset.memberRole,s.value)));document.querySelectorAll("[data-remove-member]").forEach(b=>b.addEventListener("click",()=>removeMember(b.dataset.removeMember)));document.querySelectorAll("[data-revoke-invite]").forEach(b=>b.addEventListener("click",()=>revokeInvite(b.dataset.revokeInvite)));
+    }catch(e){$("collabMembers").innerHTML=`<div class="sf-collab-note">${esc(e.message)}</div>`}
+  }
+  async function ownerRequest(path,opts={}){const ctx=accessContext(),r=await fetch(path,{...opts,headers:{...ctx.headers,...(opts.headers||{})}}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Request failed.");return d}
+  async function invite(){const email=$("collabEmail").value.trim().toLowerCase(),role=$("collabRole").value,b=$("collabInviteBtn");if(!email){setStatus("Enter an email address.","error");return}b.disabled=true;setStatus("Sending invitation…");try{const ctx=accessContext();await ownerRequest("/api/collaboration/invites",{method:"POST",body:JSON.stringify({workspaceId:ctx.workspaceId,email,role,invitedBy:activeUser()})});$("collabEmail").value="";setStatus("Invitation sent.","success");await loadCollaboration()}catch(e){setStatus(e.message,"error")}finally{b.disabled=false}}
+  async function changeRole(id,role){try{const ctx=accessContext();await ownerRequest(`/api/collaboration/members/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(ctx.workspaceId)}`,{method:"PATCH",body:JSON.stringify({workspaceId:ctx.workspaceId,role})});setStatus("Role updated.","success")}catch(e){setStatus(e.message,"error");loadCollaboration()}}
+  async function removeMember(id){if(!confirm("Remove this collaborator from the project?"))return;try{const ctx=accessContext();await ownerRequest(`/api/collaboration/members/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(ctx.workspaceId)}`,{method:"DELETE"});setStatus("Collaborator removed.","success");loadCollaboration()}catch(e){setStatus(e.message,"error")}}
+  async function revokeInvite(id){try{const ctx=accessContext();await ownerRequest(`/api/collaboration/invites/${encodeURIComponent(id)}?workspaceId=${encodeURIComponent(ctx.workspaceId)}`,{method:"DELETE"});setStatus("Invitation cancelled.","success");loadCollaboration()}catch(e){setStatus(e.message,"error")}}
+  $("shareBtn")?.addEventListener("click",()=>{modal.classList.add("show");modal.setAttribute("aria-hidden","false");setStatus("");loadCollaboration()});$("collabClose")?.addEventListener("click",()=>{modal.classList.remove("show");modal.setAttribute("aria-hidden","true")});modal?.addEventListener("click",e=>{if(e.target===modal)$("collabClose").click()});$("collabInviteBtn")?.addEventListener("click",invite);$("collabEmail")?.addEventListener("keydown",e=>{if(e.key==="Enter")invite()});
+
+  const params=new URLSearchParams(location.search),inviteToken=params.get("siteflowInvite"),inviteScreen=$("inviteScreen");
+  async function previewInvite(){if(!inviteToken)return;inviteScreen.classList.add("show");try{const r=await fetch(`/api/collaboration/invites/preview?token=${encodeURIComponent(inviteToken)}`),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not load invitation.");const i=d.invite;$("inviteIntro").textContent=`You’ve been invited to work on ${i.projectName}.`;$("inviteMeta").hidden=false;$("inviteMeta").innerHTML=`<div><span>Project</span><b>${esc(i.projectName)}</b></div><div><span>Role</span><b>${esc(i.role)}</b></div><div><span>Invited by</span><b>${esc(i.invitedBy||"SiteFlow owner")}</b></div>`;$("inviteEmail").value=activeUser()||i.email||"";$("inviteEmail").dataset.expected=i.email||""}catch(e){$("inviteIntro").textContent=e.message;$("acceptInviteBtn").disabled=true;$("inviteStatus").textContent="Ask the project owner for a new invitation."}}
+  $("acceptInviteBtn")?.addEventListener("click",async()=>{const email=$("inviteEmail").value.trim().toLowerCase(),b=$("acceptInviteBtn");b.disabled=true;$("inviteStatus").textContent="Joining project…";try{const r=await fetch("/api/collaboration/invites/accept",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:inviteToken,email})}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Could not accept invitation.");setCollabAccess({workspaceId:d.workspaceId,email,key:d.collaborationKey,role:d.member.role});history.replaceState({},"",location.pathname);inviteScreen.classList.remove("show");applyRole();await loadShared(true);window.SiteFlowProjectBridge?.notify?.("Collaboration connected") }catch(e){$("inviteStatus").textContent=e.message;b.disabled=false}});
+  previewInvite();setTimeout(()=>{applyRole();loadShared(false)},1300);
 })();
 </script>
 
