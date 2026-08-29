@@ -8,79 +8,27 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 const AGENTMAIL_API_KEY = process.env.AGENTMAIL_API_KEY;
-const AGENTMAIL_INBOX =
-  process.env.AGENTMAIL_INBOX || "siteflow.verify@agentmail.to";
-
+const AGENTMAIL_INBOX = process.env.AGENTMAIL_INBOX || "siteflow.verify@agentmail.to";
 const VERIFICATION_SECRET = process.env.VERIFICATION_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
+const COLLAB_AGENTMAIL_API_KEY = process.env.COLLAB_AGENTMAIL_API_KEY;
+const COLLAB_AGENTMAIL_INBOX = process.env.COLLAB_AGENTMAIL_INBOX || "siteflow.collaboration@agentmail.to";
+const SITEFLOW_APP_URL = String(process.env.SITEFLOW_APP_URL || process.env.RAILWAY_PUBLIC_DOMAIN || "").trim();
 
-const COLLAB_AGENTMAIL_API_KEY =
-  process.env.COLLAB_AGENTMAIL_API_KEY;
+if (!AGENTMAIL_API_KEY) console.warn("WARNING: AGENTMAIL_API_KEY is not set.");
+if (!VERIFICATION_SECRET) console.warn("WARNING: VERIFICATION_SECRET is not set.");
+if (!DATABASE_URL) console.warn("WARNING: DATABASE_URL is not set. Inbox data will use temporary memory storage until PostgreSQL is added.");
+if (!COLLAB_AGENTMAIL_API_KEY) console.warn("WARNING: COLLAB_AGENTMAIL_API_KEY is not set. Collaboration invitations cannot be emailed.");
 
-const COLLAB_AGENTMAIL_INBOX =
-  process.env.COLLAB_AGENTMAIL_INBOX ||
-  "siteflow.collaboration@agentmail.to";
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(express.json({ limit: "100kb" }));
 
-const SITEFLOW_APP_URL = String(
-  process.env.SITEFLOW_APP_URL ||
-  process.env.RAILWAY_PUBLIC_DOMAIN ||
-  ""
-).trim();
-
-if (!AGENTMAIL_API_KEY) {
-  console.warn("WARNING: AGENTMAIL_API_KEY is not set.");
-}
-
-if (!VERIFICATION_SECRET) {
-  console.warn("WARNING: VERIFICATION_SECRET is not set.");
-}
-
-if (!DATABASE_URL) {
-  console.warn(
-    "WARNING: DATABASE_URL is not set. Inbox data will use temporary memory storage until PostgreSQL is added."
-  );
-}
-
-if (!COLLAB_AGENTMAIL_API_KEY) {
-  console.warn(
-    "WARNING: COLLAB_AGENTMAIL_API_KEY is not set. Collaboration invitations cannot be emailed."
-  );
-}
-
-/* =========================================================
-   MIDDLEWARE
-========================================================= */
-
-app.use(
-  helmet({
-    contentSecurityPolicy: false
-  })
-);
-
-app.use(
-  express.json({
-    limit: "100kb"
-  })
-);
-
-/*
-  Public form submissions may come from a downloaded
-  SiteFlow website hosted on another domain.
-*/
+// Public form submissions may come from a downloaded SiteFlow site hosted on another domain.
 app.use("/api/form-submit", (req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type"
-  );
-
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "POST, OPTIONS"
-  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
@@ -92,53 +40,27 @@ app.use("/api/form-submit", (req, res, next) => {
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "index.html")
-  );
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-/* =========================================================
-   TEMPORARY MEMORY STORAGE
-========================================================= */
-
 const verificationRequests = new Map();
-
 const memoryWorkspaces = new Map();
-
 const memoryMessages = [];
-
 const memoryInvites = new Map();
-
 const memoryMembers = new Map();
-
 const memoryProjectStates = new Map();
-
-/* =========================================================
-   POSTGRESQL
-========================================================= */
 
 const pool = DATABASE_URL
   ? new Pool({
       connectionString: DATABASE_URL,
-
-      ssl: /railway\.app|rlwy\.net/.test(
-        DATABASE_URL
-      )
-        ? {
-            rejectUnauthorized: false
-          }
+      ssl: /railway\.app|rlwy\.net/.test(DATABASE_URL)
+        ? { rejectUnauthorized: false }
         : undefined
     })
   : null;
 
-/* =========================================================
-   DATABASE SETUP
-========================================================= */
-
 async function initDatabase() {
-  if (!pool) {
-    return;
-  }
+  if (!pool) return;
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS siteflow_workspaces (
@@ -154,553 +76,251 @@ async function initDatabase() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS siteflow_messages (
       id TEXT PRIMARY KEY,
-      workspace_id TEXT NOT NULL
-        REFERENCES siteflow_workspaces(id)
-        ON DELETE CASCADE,
-
+      workspace_id TEXT NOT NULL REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
       sender_name TEXT NOT NULL DEFAULT '',
       sender_email TEXT NOT NULL DEFAULT '',
-
-      subject TEXT NOT NULL
-        DEFAULT 'New form submission',
-
+      subject TEXT NOT NULL DEFAULT 'New form submission',
       message TEXT NOT NULL DEFAULT '',
-
       page_name TEXT NOT NULL DEFAULT '',
-
-      form_name TEXT NOT NULL
-        DEFAULT 'Contact form',
-
+      form_name TEXT NOT NULL DEFAULT 'Contact form',
       is_read BOOLEAN NOT NULL DEFAULT FALSE,
-
       archived BOOLEAN NOT NULL DEFAULT FALSE,
-
-      created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-    idx_siteflow_messages_workspace_created
-    ON siteflow_messages(
-      workspace_id,
-      created_at DESC
-    )
+    CREATE INDEX IF NOT EXISTS idx_siteflow_messages_workspace_created
+    ON siteflow_messages(workspace_id, created_at DESC)
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS
-    siteflow_project_members (
+    CREATE TABLE IF NOT EXISTS siteflow_project_members (
       id TEXT PRIMARY KEY,
-
-      workspace_id TEXT NOT NULL
-        REFERENCES siteflow_workspaces(id)
-        ON DELETE CASCADE,
-
+      workspace_id TEXT NOT NULL REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
       email TEXT NOT NULL,
-
-      role TEXT NOT NULL CHECK (
-        role IN (
-          'editor',
-          'content',
-          'viewer'
-        )
-      ),
-
+      role TEXT NOT NULL CHECK (role IN ('editor','content','viewer')),
       access_key_hash TEXT NOT NULL,
-
       invited_by TEXT NOT NULL DEFAULT '',
-
-      created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
-
-      updated_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW(),
-
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE(workspace_id, email)
     )
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS
-    siteflow_project_invites (
+    CREATE TABLE IF NOT EXISTS siteflow_project_invites (
       id TEXT PRIMARY KEY,
-
-      workspace_id TEXT NOT NULL
-        REFERENCES siteflow_workspaces(id)
-        ON DELETE CASCADE,
-
+      workspace_id TEXT NOT NULL REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
       email TEXT NOT NULL,
-
-      role TEXT NOT NULL CHECK (
-        role IN (
-          'editor',
-          'content',
-          'viewer'
-        )
-      ),
-
+      role TEXT NOT NULL CHECK (role IN ('editor','content','viewer')),
       token_hash TEXT NOT NULL UNIQUE,
-
       invited_by TEXT NOT NULL DEFAULT '',
-
       expires_at TIMESTAMPTZ NOT NULL,
-
       accepted_at TIMESTAMPTZ,
-
       revoked_at TIMESTAMPTZ,
-
-      created_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-    idx_siteflow_invites_workspace_created
-    ON siteflow_project_invites(
-      workspace_id,
-      created_at DESC
-    )
+    CREATE INDEX IF NOT EXISTS idx_siteflow_invites_workspace_created
+    ON siteflow_project_invites(workspace_id, created_at DESC)
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS
-    idx_siteflow_members_workspace
-    ON siteflow_project_members(
-      workspace_id
-    )
+    CREATE INDEX IF NOT EXISTS idx_siteflow_members_workspace
+    ON siteflow_project_members(workspace_id)
   `);
 
-  /*
-    Shared SiteFlow project state.
-
-    This allows the owner and collaborators
-    to open the same project from PostgreSQL.
-  */
-
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS
-    siteflow_project_state (
-      workspace_id TEXT PRIMARY KEY
-        REFERENCES siteflow_workspaces(id)
-        ON DELETE CASCADE,
-
-      state_json JSONB NOT NULL
-        DEFAULT '{}'::jsonb,
-
+    CREATE TABLE IF NOT EXISTS siteflow_project_state (
+      workspace_id TEXT PRIMARY KEY REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
+      state_json JSONB NOT NULL DEFAULT '{}'::jsonb,
       revision BIGINT NOT NULL DEFAULT 1,
-
       updated_by TEXT NOT NULL DEFAULT '',
-
-      updated_at TIMESTAMPTZ
-        NOT NULL DEFAULT NOW()
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
-  console.log(
-    "SiteFlow inbox + collaboration database ready."
-  );
+  console.log("SiteFlow inbox + collaboration database ready.");
 }
 
-initDatabase().catch((error) => {
-  console.error(
-    "Database initialization error:",
-    error
-  );
+initDatabase().catch((err) => {
+  console.error("Database initialization error:", err);
 });
 
-/* =========================================================
-   RATE LIMITS
-========================================================= */
+const SEND_COOLDOWN_MS = 30 * 1000;
+const CODE_TTL_MS = 10 * 60 * 1000;
+const MAX_ATTEMPTS = 5;
 
-const SEND_COOLDOWN_MS =
-  30 * 1000;
+const sendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    error: "Too many verification requests. Please try again later."
+  }
+});
 
-const CODE_TTL_MS =
-  10 * 60 * 1000;
+const verifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    error: "Too many verification attempts. Please try again later."
+  }
+});
 
-const MAX_ATTEMPTS =
-  5;
-
-const sendLimiter =
-  rateLimit({
-    windowMs:
-      15 * 60 * 1000,
-
-    max: 12,
-
-    standardHeaders: true,
-
-    legacyHeaders: false,
-
-    message: {
-      ok: false,
-
-      error:
-        "Too many verification requests. Please try again later."
-    }
-  });
-
-const verifyLimiter =
-  rateLimit({
-    windowMs:
-      15 * 60 * 1000,
-
-    max: 40,
-
-    standardHeaders: true,
-
-    legacyHeaders: false,
-
-    message: {
-      ok: false,
-
-      error:
-        "Too many verification attempts. Please try again later."
-    }
-  });
-
-const formLimiter =
-  rateLimit({
-    windowMs:
-      10 * 60 * 1000,
-
-    max: 30,
-
-    standardHeaders: true,
-
-    legacyHeaders: false,
-
-    message: {
-      ok: false,
-
-      error:
-        "Too many form submissions. Please try again later."
-    }
-  });
-
-/* =========================================================
-   UTILITY FUNCTIONS
-========================================================= */
+const formLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    error: "Too many form submissions. Please try again later."
+  }
+});
 
 function normalizeEmail(value) {
-  return String(
-    value || ""
-  )
-    .trim()
-    .toLowerCase();
+  return String(value || "").trim().toLowerCase();
 }
 
-function cleanText(
-  value,
-  max = 5000
-) {
-  return String(
-    value || ""
-  )
-    .trim()
-    .slice(0, max);
+function cleanText(value, max = 5000) {
+  return String(value || "").trim().slice(0, max);
 }
 
 function isValidEmail(email) {
-  return (
-    email.length <= 254 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      email
-    )
-  );
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function hashCode(
-  email,
-  code
-) {
-  const secret =
-    VERIFICATION_SECRET ||
-    "development-only-secret";
+function hashCode(email, code) {
+  const secret = VERIFICATION_SECRET || "development-only-secret";
 
   return crypto
-    .createHmac(
-      "sha256",
-      secret
-    )
-    .update(
-      `${email}:${code}`
-    )
+    .createHmac("sha256", secret)
+    .update(`${email}:${code}`)
     .digest("hex");
 }
 
-function hashInboxKey(
-  value
-) {
+function hashInboxKey(value) {
   return crypto
-    .createHash(
-      "sha256"
-    )
-    .update(
-      String(
-        value || ""
-      )
-    )
+    .createHash("sha256")
+    .update(String(value || ""))
     .digest("hex");
 }
 
 function safeEqual(a, b) {
-  const left =
-    Buffer.from(
-      String(a)
-    );
-
-  const right =
-    Buffer.from(
-      String(b)
-    );
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
 
   return (
-    left.length ===
-      right.length &&
-    crypto.timingSafeEqual(
-      left,
-      right
-    )
+    left.length === right.length &&
+    crypto.timingSafeEqual(left, right)
   );
 }
 
 function createCode() {
   return String(
-    crypto.randomInt(
-      0,
-      1_000_000
-    )
-  ).padStart(
-    6,
-    "0"
-  );
+    crypto.randomInt(0, 1_000_000)
+  ).padStart(6, "0");
 }
 
-function createId(
-  prefix = "msg"
-) {
-  return `${prefix}_${crypto
-    .randomBytes(12)
-    .toString("hex")}`;
+function createId(prefix = "msg") {
+  return `${prefix}_${crypto.randomBytes(12).toString("hex")}`;
 }
 
-/* =========================================================
-   VERIFICATION EMAIL
-========================================================= */
-
-function verificationEmailHtml(
-  code
-) {
-  return `
-<!doctype html>
+function verificationEmailHtml(code) {
+  return `<!doctype html>
 <html>
-<body
-  style="
-    margin:0;
-    padding:0;
-    background:#f4f5f7;
-    font-family:Arial,Helvetica,sans-serif;
-    color:#17181b;
-  "
->
-
-<table
-  role="presentation"
-  width="100%"
-  cellspacing="0"
-  cellpadding="0"
-  style="
-    padding:32px 16px;
-    background:#f4f5f7;
-  "
->
-
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#17181b">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 16px;background:#f4f5f7">
 <tr>
-
 <td align="center">
-
-<table
-  role="presentation"
-  width="100%"
-  cellspacing="0"
-  cellpadding="0"
-  style="
-    max-width:520px;
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-  "
->
-
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#fff;border:1px solid #e5e7eb;border-radius:18px">
 <tr>
-
-<td
-  style="
-    padding:34px;
-  "
->
-
-<div
-  style="
-    font-size:22px;
-    font-weight:800;
-    margin-bottom:24px;
-  "
->
-  SiteFlow
+<td style="padding:34px">
+<div style="font-size:22px;font-weight:800;margin-bottom:24px">
+SiteFlow
 </div>
 
-<h1
-  style="
-    font-size:25px;
-    line-height:1.2;
-    margin:0 0 12px;
-  "
->
-  Verify your email
+<h1 style="font-size:25px;line-height:1.2;margin:0 0 12px">
+Verify your email
 </h1>
 
-<p
-  style="
-    font-size:15px;
-    line-height:1.6;
-    color:#60646c;
-    margin:0 0 24px;
-  "
->
-  Enter this code in SiteFlow to finish creating your account.
+<p style="font-size:15px;line-height:1.6;color:#60646c;margin:0 0 24px">
+Enter this code in SiteFlow to finish creating your account.
 </p>
 
-<div
-  style="
-    font-size:34px;
-    font-weight:800;
-    letter-spacing:8px;
-    text-align:center;
-    padding:20px;
-    border-radius:14px;
-    background:#f5f3ff;
-    border:1px solid #e5e0ff;
-    margin-bottom:22px;
-  "
->
-  ${code}
+<div style="font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;padding:20px;border-radius:14px;background:#f5f3ff;border:1px solid #e5e0ff;margin-bottom:22px">
+${code}
 </div>
 
-<p
-  style="
-    font-size:13px;
-    line-height:1.6;
-    color:#767b84;
-    margin:0;
-  "
->
-  This code expires in 10 minutes.
-  If you didn't request it,
-  you can ignore this email.
+<p style="font-size:13px;line-height:1.6;color:#767b84;margin:0">
+This code expires in 10 minutes.
+If you didn't request it, you can ignore this email.
 </p>
-
 </td>
 </tr>
-
 </table>
-
 </td>
 </tr>
-
 </table>
-
 </body>
-</html>
-`;
+</html>`;
 }
 
-function verificationEmailText(
-  code
-) {
+function verificationEmailText(code) {
   return [
     "SiteFlow",
-
     "",
-
     "Verify your email",
-
     "",
-
     `Your verification code is: ${code}`,
-
     "",
-
     "This code expires in 10 minutes.",
-
     "If you didn't request it, you can ignore this email."
   ].join("\n");
 }
 
-async function sendWithAgentMail(
-  to,
-  code
-) {
+async function sendWithAgentMail(to, code) {
   if (!AGENTMAIL_API_KEY) {
-    throw new Error(
-      "AgentMail is not configured."
-    );
+    throw new Error("AgentMail is not configured.");
   }
 
-  const inboxId =
-    encodeURIComponent(
-      AGENTMAIL_INBOX
-    );
+  const inboxId = encodeURIComponent(AGENTMAIL_INBOX);
 
-  const response =
-    await fetch(
-      `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
-      {
-        method: "POST",
+  const response = await fetch(
+    `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
+    {
+      method: "POST",
 
-        headers: {
-          Authorization:
-            `Bearer ${AGENTMAIL_API_KEY}`,
+      headers: {
+        Authorization: `Bearer ${AGENTMAIL_API_KEY}`,
+        "Content-Type": "application/json"
+      },
 
-          "Content-Type":
-            "application/json"
-        },
-
-        body:
-          JSON.stringify({
-            to,
-
-            subject:
-              `${code} is your SiteFlow verification code`,
-
-            text:
-              verificationEmailText(
-                code
-              ),
-
-            html:
-              verificationEmailHtml(
-                code
-              )
-          })
-      }
-    );
+      body: JSON.stringify({
+        to,
+        subject: `${code} is your SiteFlow verification code`,
+        text: verificationEmailText(code),
+        html: verificationEmailHtml(code)
+      })
+    }
+  );
 
   if (!response.ok) {
     let details = "";
 
     try {
-      details =
-        JSON.stringify(
-          await response.json()
-        );
+      details = JSON.stringify(await response.json());
     } catch {
-      details =
-        await response.text();
+      details = await response.text();
     }
 
     console.error(
@@ -717,136 +337,69 @@ async function sendWithAgentMail(
   return response.json();
 }
 
-/* =========================================================
-   WORKSPACE FUNCTIONS
-========================================================= */
-
-async function getWorkspace(
-  workspaceId
-) {
+async function getWorkspace(workspaceId) {
   if (pool) {
-    const { rows } =
-      await pool.query(
-        `
-          SELECT *
-          FROM siteflow_workspaces
-          WHERE id=$1
-        `,
-        [
-          workspaceId
-        ]
-      );
-
-    return (
-      rows[0] ||
-      null
+    const { rows } = await pool.query(
+      "SELECT * FROM siteflow_workspaces WHERE id=$1",
+      [workspaceId]
     );
+
+    return rows[0] || null;
   }
 
-  return (
-    memoryWorkspaces.get(
-      workspaceId
-    ) ||
-    null
-  );
+  return memoryWorkspaces.get(workspaceId) || null;
 }
 
-/* =========================================================
-   INBOX OWNER AUTHENTICATION
-========================================================= */
-
-async function requireInboxAccess(
-  req,
-  res,
-  next
-) {
+async function requireInboxAccess(req, res, next) {
   try {
-    const workspaceId =
-      cleanText(
-        req.query.workspaceId ||
-        req.body?.workspaceId,
-        200
-      );
+    const workspaceId = cleanText(
+      req.query.workspaceId || req.body?.workspaceId,
+      200
+    );
 
-    const inboxKey =
-      cleanText(
-        req.get(
-          "x-siteflow-inbox-key"
-        ),
-        500
-      );
+    const inboxKey = cleanText(
+      req.get("x-siteflow-inbox-key"),
+      500
+    );
 
-    if (
-      !workspaceId ||
-      !inboxKey
-    ) {
-      return res
-        .status(401)
-        .json({
-          ok: false,
-
-          error:
-            "Inbox access details are missing."
-        });
+    if (!workspaceId || !inboxKey) {
+      return res.status(401).json({
+        ok: false,
+        error: "Inbox access details are missing."
+      });
     }
 
-    const workspace =
-      await getWorkspace(
-        workspaceId
-      );
+    const workspace = await getWorkspace(workspaceId);
 
     if (
       !workspace ||
       !safeEqual(
         workspace.inbox_key_hash,
-        hashInboxKey(
-          inboxKey
-        )
+        hashInboxKey(inboxKey)
       )
     ) {
-      return res
-        .status(403)
-        .json({
-          ok: false,
-
-          error:
-            "Inbox access denied."
-        });
+      return res.status(403).json({
+        ok: false,
+        error: "Inbox access denied."
+      });
     }
 
-    req.workspace =
-      workspace;
-
-    req.workspaceId =
-      workspaceId;
+    req.workspace = workspace;
+    req.workspaceId = workspaceId;
 
     next();
   } catch (error) {
-    console.error(
-      error
-    );
+    console.error(error);
 
-    res
-      .status(500)
-      .json({
-        ok: false,
-
-        error:
-          "Could not verify inbox access."
-      });
+    res.status(500).json({
+      ok: false,
+      error: "Could not verify inbox access."
+    });
   }
 }
 
-/* =========================================================
-   COLLABORATION
-========================================================= */
-
 const COLLAB_INVITE_TTL_MS =
-  7 *
-  24 *
-  60 *
-  60 *
-  1000;
+  7 * 24 * 60 * 60 * 1000;
 
 const COLLAB_ROLES =
   new Set([
@@ -855,102 +408,51 @@ const COLLAB_ROLES =
     "viewer"
   ]);
 
-const inviteLimiter =
-  rateLimit({
-    windowMs:
-      15 *
-      60 *
-      1000,
+const inviteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    error: "Too many collaboration requests. Please try again later."
+  }
+});
 
-    max: 30,
-
-    standardHeaders: true,
-
-    legacyHeaders: false,
-
-    message: {
-      ok: false,
-
-      error:
-        "Too many collaboration requests. Please try again later."
-    }
-  });
-
-function hashToken(
-  value
-) {
+function hashToken(value) {
   return crypto
-    .createHash(
-      "sha256"
-    )
-    .update(
-      String(
-        value || ""
-      )
-    )
+    .createHash("sha256")
+    .update(String(value || ""))
     .digest("hex");
 }
 
-function makeSecureToken(
-  bytes = 32
-) {
+function makeSecureToken(bytes = 32) {
   return crypto
-    .randomBytes(
-      bytes
-    )
-    .toString(
-      "base64url"
-    );
+    .randomBytes(bytes)
+    .toString("base64url");
 }
 
-function normalizeRole(
-  value
-) {
-  const role =
-    String(
-      value || ""
-    )
-      .trim()
-      .toLowerCase();
+function normalizeRole(value) {
+  const role = String(value || "")
+    .trim()
+    .toLowerCase();
 
-  return COLLAB_ROLES.has(
-    role
-  )
+  return COLLAB_ROLES.has(role)
     ? role
     : "";
 }
 
-function appBaseUrl(
-  req
-) {
-  if (
-    SITEFLOW_APP_URL
-  ) {
-    if (
-      /^https?:\/\//i.test(
-        SITEFLOW_APP_URL
-      )
-    ) {
-      return SITEFLOW_APP_URL.replace(
-        /\/+$/,
-        ""
-      );
+function appBaseUrl(req) {
+  if (SITEFLOW_APP_URL) {
+    if (/^https?:\/\//i.test(SITEFLOW_APP_URL)) {
+      return SITEFLOW_APP_URL.replace(/\/+$/, "");
     }
 
-    return `https://${SITEFLOW_APP_URL.replace(
-      /\/+$/,
-      ""
-    )}`;
+    return `https://${SITEFLOW_APP_URL.replace(/\/+$/, "")}`;
   }
 
-  return `${req.protocol}://${req.get(
-    "host"
-  )}`;
+  return `${req.protocol}://${req.get("host")}`;
 }
-
-/* =========================================================
-   COLLABORATION EMAIL
-========================================================= */
 
 function collaborationEmailHtml({
   projectName,
@@ -958,160 +460,64 @@ function collaborationEmailHtml({
   role,
   inviteUrl
 }) {
-  const esc = (
-    value
-  ) =>
-    String(
-      value || ""
-    ).replace(
+  const esc = (v) =>
+    String(v || "").replace(
       /[&<>"']/g,
-      (char) =>
+      (ch) =>
         ({
           "&": "&amp;",
           "<": "&lt;",
           ">": "&gt;",
           '"': "&quot;",
           "'": "&#39;"
-        })[char]
+        })[ch]
     );
 
-  return `
-<!doctype html>
+  return `<!doctype html>
 <html>
-<body
-  style="
-    margin:0;
-    padding:0;
-    background:#f5f6f8;
-    font-family:Arial,Helvetica,sans-serif;
-    color:#17181b;
-  "
->
-
-<table
-  role="presentation"
-  width="100%"
-  cellspacing="0"
-  cellpadding="0"
-  style="
-    padding:34px 16px;
-  "
->
-
+<body style="margin:0;padding:0;background:#f5f6f8;font-family:Arial,Helvetica,sans-serif;color:#17181b">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:34px 16px">
 <tr>
-
 <td align="center">
-
-<table
-  role="presentation"
-  width="100%"
-  cellspacing="0"
-  cellpadding="0"
-  style="
-    max-width:560px;
-    background:#fff;
-    border:1px solid #e7e9ee;
-    border-radius:20px;
-  "
->
-
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fff;border:1px solid #e7e9ee;border-radius:20px">
 <tr>
+<td style="padding:36px">
 
-<td
-  style="
-    padding:36px;
-  "
->
-
-<div
-  style="
-    font-size:22px;
-    font-weight:800;
-    margin-bottom:26px;
-  "
->
-  SiteFlow Collaboration
+<div style="font-size:22px;font-weight:800;margin-bottom:26px">
+SiteFlow Collaboration
 </div>
 
-<h1
-  style="
-    font-size:25px;
-    line-height:1.25;
-    margin:0 0 12px;
-  "
->
-  You’ve been invited to collaborate
+<h1 style="font-size:25px;line-height:1.25;margin:0 0 12px">
+You’ve been invited to collaborate
 </h1>
 
-<p
-  style="
-    font-size:15px;
-    line-height:1.65;
-    color:#60646c;
-    margin:0 0 20px;
-  "
->
-  ${esc(
-    inviterEmail
-  )} invited you
-  to work on
-  <strong>
-    ${esc(
-      projectName
-    )}
-  </strong>
-  as
-  <strong>
-    ${esc(
-      role
-    )}
-  </strong>.
+<p style="font-size:15px;line-height:1.65;color:#60646c;margin:0 0 20px">
+${esc(inviterEmail)} invited you to work on
+<strong>${esc(projectName)}</strong>
+as
+<strong>${esc(role)}</strong>.
 </p>
 
 <a
-  href="${esc(
-    inviteUrl
-  )}"
-  style="
-    display:inline-block;
-    background:#655df6;
-    color:#fff;
-    text-decoration:none;
-    font-weight:700;
-    padding:13px 18px;
-    border-radius:11px;
-  "
+href="${esc(inviteUrl)}"
+style="display:inline-block;background:#655df6;color:#fff;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:11px"
 >
-  Accept invitation
+Accept invitation
 </a>
 
-<p
-  style="
-    font-size:13px;
-    line-height:1.6;
-    color:#777c85;
-    margin:24px 0 0;
-  "
->
-  This invitation expires
-  in 7 days.
-  If you weren’t expecting it,
-  you can ignore this email.
+<p style="font-size:13px;line-height:1.6;color:#777c85;margin:24px 0 0">
+This invitation expires in 7 days.
+If you weren’t expecting it, you can ignore this email.
 </p>
 
 </td>
 </tr>
-
 </table>
-
 </td>
 </tr>
-
 </table>
-
 </body>
-</html>
-`;
+</html>`;
 }
 
 function collaborationEmailText({
@@ -1122,21 +528,13 @@ function collaborationEmailText({
 }) {
   return [
     "SiteFlow Collaboration",
-
     "",
-
     "You've been invited to collaborate.",
-
     "",
-
     `${inviterEmail} invited you to work on ${projectName} as ${role}.`,
-
     "",
-
     `Accept invitation: ${inviteUrl}`,
-
     "",
-
     "This invitation expires in 7 days."
   ].join("\n");
 }
@@ -1145,59 +543,37 @@ async function sendCollaborationInvite(
   to,
   payload
 ) {
-  if (
-    !COLLAB_AGENTMAIL_API_KEY
-  ) {
+  if (!COLLAB_AGENTMAIL_API_KEY) {
     throw new Error(
       "Collaboration AgentMail is not configured."
     );
   }
 
-  const inboxId =
-    encodeURIComponent(
-      COLLAB_AGENTMAIL_INBOX
-    );
+  const inboxId = encodeURIComponent(
+    COLLAB_AGENTMAIL_INBOX
+  );
 
-  const response =
-    await fetch(
-      `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
-      {
-        method:
-          "POST",
+  const response = await fetch(
+    `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
+    {
+      method: "POST",
 
-        headers: {
-          Authorization:
-            `Bearer ${COLLAB_AGENTMAIL_API_KEY}`,
+      headers: {
+        Authorization: `Bearer ${COLLAB_AGENTMAIL_API_KEY}`,
+        "Content-Type": "application/json"
+      },
 
-          "Content-Type":
-            "application/json"
-        },
+      body: JSON.stringify({
+        to,
+        subject: `You're invited to collaborate on ${payload.projectName} in SiteFlow`,
+        text: collaborationEmailText(payload),
+        html: collaborationEmailHtml(payload)
+      })
+    }
+  );
 
-        body:
-          JSON.stringify({
-            to,
-
-            subject:
-              `You're invited to collaborate on ${payload.projectName} in SiteFlow`,
-
-            text:
-              collaborationEmailText(
-                payload
-              ),
-
-            html:
-              collaborationEmailHtml(
-                payload
-              )
-          })
-      }
-    );
-
-  if (
-    !response.ok
-  ) {
-    let details =
-      "";
+  if (!response.ok) {
+    let details = "";
 
     try {
       details =
@@ -1222,10 +598,6 @@ async function sendCollaborationInvite(
 
   return response.json();
 }
-
-/* =========================================================
-   OWNER AUTH
-========================================================= */
 
 async function requireOwner(
   req,
@@ -1308,10 +680,6 @@ async function requireOwner(
       });
   }
 }
-
-/* =========================================================
-   COLLABORATOR AUTH
-========================================================= */
 
 async function requireCollaborator(
   req,
@@ -1431,10 +799,6 @@ async function requireCollaborator(
   }
 }
 
-/* =========================================================
-   SHARED PROJECT ACCESS
-========================================================= */
-
 async function resolveProjectAccess(
   req,
   res,
@@ -1460,10 +824,6 @@ async function resolveProjectAccess(
             "workspaceId is required."
         });
     }
-
-    /*
-      First attempt owner authentication.
-    */
 
     const ownerKey =
       cleanText(
@@ -1511,10 +871,6 @@ async function resolveProjectAccess(
         return next();
       }
     }
-
-    /*
-      Otherwise attempt collaborator authentication.
-    */
 
     const email =
       normalizeEmail(
@@ -1632,10 +988,6 @@ async function resolveProjectAccess(
   }
 }
 
-/* =========================================================
-   GET SHARED PROJECT
-========================================================= */
-
 app.get(
   "/api/project-state",
   resolveProjectAccess,
@@ -1667,6 +1019,7 @@ app.get(
                 revision,
                 updated_by,
                 updated_at
+
               FROM siteflow_project_state
               WHERE workspace_id=$1
             `,
@@ -1746,10 +1099,6 @@ app.get(
     }
   }
 );
-
-/* =========================================================
-   SAVE SHARED PROJECT
-========================================================= */
 
 app.put(
   "/api/project-state",
@@ -2031,10 +1380,6 @@ app.put(
   }
 );
 
-/* =========================================================
-   HEALTH CHECK
-========================================================= */
-
 app.get(
   "/api/health",
   (
@@ -2070,10 +1415,6 @@ app.get(
     });
   }
 );
-
-/* =========================================================
-   SEND VERIFICATION CODE
-========================================================= */
 
 app.post(
   "/api/send-verification",
@@ -2204,10 +1545,6 @@ app.post(
     }
   }
 );
-
-/* =========================================================
-   VERIFY CODE
-========================================================= */
 
 app.post(
   "/api/verify-code",
@@ -2346,10 +1683,6 @@ app.post(
   }
 );
 
-/* =========================================================
-   REGISTER WORKSPACE
-========================================================= */
-
 app.post(
   "/api/workspaces/register",
   async (
@@ -2452,6 +1785,7 @@ app.post(
             )
 
             ON CONFLICT(id)
+
             DO UPDATE SET
               owner_email =
                 EXCLUDED.owner_email,
@@ -2517,10 +1851,6 @@ app.post(
     }
   }
 );
-
-/* =========================================================
-   PUBLIC FORM SUBMISSION
-========================================================= */
 
 app.post(
   "/api/form-submit",
@@ -2747,10 +2077,6 @@ app.post(
   }
 );
 
-/* =========================================================
-   INBOX - LOAD
-========================================================= */
-
 app.get(
   "/api/inbox",
   requireInboxAccess,
@@ -2853,10 +2179,6 @@ app.get(
   }
 );
 
-/* =========================================================
-   INBOX - UNREAD COUNT
-========================================================= */
-
 app.get(
   "/api/inbox/count",
   requireInboxAccess,
@@ -2928,10 +2250,6 @@ app.get(
     }
   }
 );
-
-/* =========================================================
-   INBOX - UPDATE MESSAGE
-========================================================= */
 
 app.patch(
   "/api/inbox/:id",
@@ -3094,10 +2412,6 @@ app.patch(
   }
 );
 
-/* =========================================================
-   INBOX - DELETE MESSAGE
-========================================================= */
-
 app.delete(
   "/api/inbox/:id",
   requireInboxAccess,
@@ -3193,10 +2507,6 @@ app.delete(
     }
   }
 );
-
-/* =========================================================
-   CREATE COLLABORATION INVITE
-========================================================= */
 
 app.post(
   "/api/collaboration/invites",
@@ -3517,10 +2827,6 @@ app.post(
   }
 );
 
-/* =========================================================
-   LIST COLLABORATORS
-========================================================= */
-
 app.get(
   "/api/collaboration",
   requireOwner,
@@ -3700,10 +3006,6 @@ app.get(
     }
   }
 );
-
-/* =========================================================
-   PREVIEW INVITATION
-========================================================= */
 
 app.get(
   "/api/collaboration/invites/preview",
@@ -3897,10 +3199,6 @@ app.get(
     }
   }
 );
-
-/* =========================================================
-   ACCEPT INVITATION
-========================================================= */
 
 app.post(
   "/api/collaboration/invites/accept",
@@ -4206,10 +3504,6 @@ app.post(
   }
 );
 
-/* =========================================================
-   CHANGE MEMBER ROLE
-========================================================= */
-
 app.patch(
   "/api/collaboration/members/:id",
   requireOwner,
@@ -4333,10 +3627,6 @@ app.patch(
   }
 );
 
-/* =========================================================
-   REMOVE MEMBER
-========================================================= */
-
 app.delete(
   "/api/collaboration/members/:id",
   requireOwner,
@@ -4432,10 +3722,6 @@ app.delete(
     }
   }
 );
-
-/* =========================================================
-   REVOKE INVITATION
-========================================================= */
 
 app.delete(
   "/api/collaboration/invites/:id",
@@ -4533,10 +3819,6 @@ app.delete(
   }
 );
 
-/* =========================================================
-   GET CURRENT COLLABORATOR
-========================================================= */
-
 app.get(
   "/api/collaboration/me",
   requireCollaborator,
@@ -4560,10 +3842,6 @@ app.get(
     });
   }
 );
-
-/* =========================================================
-   CLEAN EXPIRED VERIFICATION CODES
-========================================================= */
 
 setInterval(
   () => {
@@ -4589,10 +3867,6 @@ setInterval(
   },
   60 * 1000
 ).unref();
-
-/* =========================================================
-   START SERVER
-========================================================= */
 
 app.listen(
   PORT,
