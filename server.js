@@ -9,55 +9,237 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const AGENTMAIL_API_KEY = process.env.AGENTMAIL_API_KEY;
-const AGENTMAIL_INBOX = process.env.AGENTMAIL_INBOX || "siteflow.verify@agentmail.to";
+const AGENTMAIL_INBOX =
+  process.env.AGENTMAIL_INBOX || "siteflow.verify@agentmail.to";
 const VERIFICATION_SECRET = process.env.VERIFICATION_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
-const COLLAB_AGENTMAIL_API_KEY = process.env.COLLAB_AGENTMAIL_API_KEY;
-const COLLAB_AGENTMAIL_INBOX = process.env.COLLAB_AGENTMAIL_INBOX || "siteflow.collaboration@agentmail.to";
-const SITEFLOW_APP_URL = String(process.env.SITEFLOW_APP_URL || process.env.RAILWAY_PUBLIC_DOMAIN || "").trim();
+const COLLAB_AGENTMAIL_API_KEY =
+  process.env.COLLAB_AGENTMAIL_API_KEY;
+const COLLAB_AGENTMAIL_INBOX =
+  process.env.COLLAB_AGENTMAIL_INBOX ||
+  "siteflow.collaboration@agentmail.to";
+const SITEFLOW_APP_URL = String(
+  process.env.SITEFLOW_APP_URL ||
+    process.env.RAILWAY_PUBLIC_DOMAIN ||
+    ""
+).trim();
 
-if (!AGENTMAIL_API_KEY) console.warn("WARNING: AGENTMAIL_API_KEY is not set.");
-if (!VERIFICATION_SECRET) console.warn("WARNING: VERIFICATION_SECRET is not set.");
-if (!DATABASE_URL) console.warn("WARNING: DATABASE_URL is not set. Inbox data will use temporary memory storage until PostgreSQL is added.");
-if (!COLLAB_AGENTMAIL_API_KEY) console.warn("WARNING: COLLAB_AGENTMAIL_API_KEY is not set. Collaboration invitations cannot be emailed.");
+const SITEFLOW_ROOT_DOMAIN = String(
+  process.env.SITEFLOW_ROOT_DOMAIN || ""
+)
+  .trim()
+  .toLowerCase()
+  .replace(/^https?:\/\//, "")
+  .replace(/\/+$/, "");
 
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(express.json({ limit: "100kb" }));
+if (!AGENTMAIL_API_KEY)
+  console.warn(
+    "WARNING: AGENTMAIL_API_KEY is not set."
+  );
 
-// Public form submissions may come from a downloaded SiteFlow site hosted on another domain.
-app.use("/api/form-submit", (req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+if (!VERIFICATION_SECRET)
+  console.warn(
+    "WARNING: VERIFICATION_SECRET is not set."
+  );
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
+if (!DATABASE_URL)
+  console.warn(
+    "WARNING: DATABASE_URL is not set. Inbox data will use temporary memory storage until PostgreSQL is added."
+  );
+
+if (!COLLAB_AGENTMAIL_API_KEY)
+  console.warn(
+    "WARNING: COLLAB_AGENTMAIL_API_KEY is not set. Collaboration invitations cannot be emailed."
+  );
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false
+  })
+);
+
+app.use(
+  express.json({
+    limit: "5mb"
+  })
+);
+
+// Public form submissions may come from a downloaded
+// SiteFlow website hosted on another domain.
+app.use(
+  "/api/form-submit",
+  (req, res, next) => {
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "*"
+    );
+
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type"
+    );
+
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "POST, OPTIONS"
+    );
+
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
+    }
+
+    next();
   }
+);
 
-  next();
-});
+// Published SiteFlow subdomains are handled before
+// the dashboard/editor static files.
+app.use(
+  async (req, res, next) => {
+    try {
+      if (
+        !SITEFLOW_ROOT_DOMAIN ||
+        req.path.startsWith("/api/")
+      ) {
+        return next();
+      }
 
-app.use(express.static(__dirname));
+      const host = String(
+        req.hostname || ""
+      )
+        .toLowerCase()
+        .replace(/\.$/, "");
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+      const suffix =
+        `.${SITEFLOW_ROOT_DOMAIN}`;
 
-const verificationRequests = new Map();
-const memoryWorkspaces = new Map();
-const memoryMessages = [];
-const memoryInvites = new Map();
-const memoryMembers = new Map();
-const memoryProjectStates = new Map();
+      if (!host.endsWith(suffix)) {
+        return next();
+      }
 
-const pool = DATABASE_URL
-  ? new Pool({
-      connectionString: DATABASE_URL,
-      ssl: /railway\.app|rlwy\.net/.test(DATABASE_URL)
-        ? { rejectUnauthorized: false }
-        : undefined
-    })
-  : null;
+      const slug =
+        host.slice(
+          0,
+          -suffix.length
+        );
+
+      if (
+        !slug ||
+        slug.includes(".") ||
+        RESERVED_SITE_SLUGS.has(slug)
+      ) {
+        return next();
+      }
+
+      const site =
+        await getPublishedSiteBySlug(
+          slug
+        );
+
+      if (
+        !site ||
+        !site.published ||
+        !site.published_html
+      ) {
+        return res
+          .status(404)
+          .type("html")
+          .send(
+            `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Site not published</title>
+</head>
+<body style="font-family:system-ui;padding:48px;max-width:720px;margin:auto">
+<h1>Site not published</h1>
+<p>This SiteFlow address does not currently have a published website.</p>
+</body>
+</html>`
+          );
+      }
+
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=60, stale-while-revalidate=300"
+      );
+
+      return res
+        .status(200)
+        .type("html")
+        .send(
+          site.published_html
+        );
+    } catch (error) {
+      console.error(
+        "Published site routing error:",
+        error
+      );
+
+      return res
+        .status(500)
+        .send(
+          "Could not load this website."
+        );
+    }
+  }
+);
+
+app.use(
+  express.static(
+    __dirname
+  )
+);
+
+app.get(
+  "/",
+  (req, res) =>
+    res.sendFile(
+      path.join(
+        __dirname,
+        "index.html"
+      )
+    )
+);
+
+const verificationRequests =
+  new Map();
+
+const memoryWorkspaces =
+  new Map();
+
+const memoryMessages =
+  [];
+
+const memoryInvites =
+  new Map();
+
+const memoryMembers =
+  new Map();
+
+const memoryProjectStates =
+  new Map();
+
+const memoryPublishedSites =
+  new Map();
+
+const pool =
+  DATABASE_URL
+    ? new Pool({
+        connectionString:
+          DATABASE_URL,
+
+        ssl: /railway\.app|rlwy\.net/.test(
+          DATABASE_URL
+        )
+          ? {
+              rejectUnauthorized:
+                false
+            }
+          : undefined
+      })
+    : null;
 
 async function initDatabase() {
   if (!pool) return;
@@ -74,177 +256,416 @@ async function initDatabase() {
   `);
 
   await pool.query(`
+    ALTER TABLE siteflow_workspaces
+    ADD COLUMN IF NOT EXISTS site_slug TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE siteflow_workspaces
+    ADD COLUMN IF NOT EXISTS published BOOLEAN
+    NOT NULL DEFAULT FALSE
+  `);
+
+  await pool.query(`
+    ALTER TABLE siteflow_workspaces
+    ADD COLUMN IF NOT EXISTS published_html TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE siteflow_workspaces
+    ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS
+    idx_siteflow_workspaces_site_slug
+    ON siteflow_workspaces(site_slug)
+    WHERE site_slug IS NOT NULL
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS siteflow_messages (
       id TEXT PRIMARY KEY,
-      workspace_id TEXT NOT NULL REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
+
+      workspace_id TEXT NOT NULL
+      REFERENCES siteflow_workspaces(id)
+      ON DELETE CASCADE,
+
       sender_name TEXT NOT NULL DEFAULT '',
       sender_email TEXT NOT NULL DEFAULT '',
-      subject TEXT NOT NULL DEFAULT 'New form submission',
+
+      subject TEXT NOT NULL
+      DEFAULT 'New form submission',
+
       message TEXT NOT NULL DEFAULT '',
       page_name TEXT NOT NULL DEFAULT '',
-      form_name TEXT NOT NULL DEFAULT 'Contact form',
+
+      form_name TEXT NOT NULL
+      DEFAULT 'Contact form',
+
       is_read BOOLEAN NOT NULL DEFAULT FALSE,
       archived BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+
+      created_at TIMESTAMPTZ
+      NOT NULL DEFAULT NOW()
     )
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_siteflow_messages_workspace_created
-    ON siteflow_messages(workspace_id, created_at DESC)
+    CREATE INDEX IF NOT EXISTS
+    idx_siteflow_messages_workspace_created
+
+    ON siteflow_messages(
+      workspace_id,
+      created_at DESC
+    )
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS siteflow_project_members (
+    CREATE TABLE IF NOT EXISTS
+    siteflow_project_members (
       id TEXT PRIMARY KEY,
-      workspace_id TEXT NOT NULL REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
+
+      workspace_id TEXT NOT NULL
+      REFERENCES siteflow_workspaces(id)
+      ON DELETE CASCADE,
+
       email TEXT NOT NULL,
-      role TEXT NOT NULL CHECK (role IN ('editor','content','viewer')),
+
+      role TEXT NOT NULL
+      CHECK (
+        role IN (
+          'editor',
+          'content',
+          'viewer'
+        )
+      ),
+
       access_key_hash TEXT NOT NULL,
       invited_by TEXT NOT NULL DEFAULT '',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE(workspace_id, email)
+
+      created_at TIMESTAMPTZ
+      NOT NULL DEFAULT NOW(),
+
+      updated_at TIMESTAMPTZ
+      NOT NULL DEFAULT NOW(),
+
+      UNIQUE(
+        workspace_id,
+        email
+      )
     )
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS siteflow_project_invites (
+    CREATE TABLE IF NOT EXISTS
+    siteflow_project_invites (
       id TEXT PRIMARY KEY,
-      workspace_id TEXT NOT NULL REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
+
+      workspace_id TEXT NOT NULL
+      REFERENCES siteflow_workspaces(id)
+      ON DELETE CASCADE,
+
       email TEXT NOT NULL,
-      role TEXT NOT NULL CHECK (role IN ('editor','content','viewer')),
-      token_hash TEXT NOT NULL UNIQUE,
-      invited_by TEXT NOT NULL DEFAULT '',
-      expires_at TIMESTAMPTZ NOT NULL,
+
+      role TEXT NOT NULL
+      CHECK (
+        role IN (
+          'editor',
+          'content',
+          'viewer'
+        )
+      ),
+
+      token_hash TEXT
+      NOT NULL UNIQUE,
+
+      invited_by TEXT
+      NOT NULL DEFAULT '',
+
+      expires_at TIMESTAMPTZ
+      NOT NULL,
+
       accepted_at TIMESTAMPTZ,
       revoked_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+
+      created_at TIMESTAMPTZ
+      NOT NULL DEFAULT NOW()
     )
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_siteflow_invites_workspace_created
-    ON siteflow_project_invites(workspace_id, created_at DESC)
-  `);
+    CREATE INDEX IF NOT EXISTS
+    idx_siteflow_invites_workspace_created
 
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_siteflow_members_workspace
-    ON siteflow_project_members(workspace_id)
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS siteflow_project_state (
-      workspace_id TEXT PRIMARY KEY REFERENCES siteflow_workspaces(id) ON DELETE CASCADE,
-      state_json JSONB NOT NULL DEFAULT '{}'::jsonb,
-      revision BIGINT NOT NULL DEFAULT 1,
-      updated_by TEXT NOT NULL DEFAULT '',
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    ON siteflow_project_invites(
+      workspace_id,
+      created_at DESC
     )
   `);
 
-  console.log("SiteFlow inbox + collaboration database ready.");
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS
+    idx_siteflow_members_workspace
+
+    ON siteflow_project_members(
+      workspace_id
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS
+    siteflow_project_state (
+      workspace_id TEXT PRIMARY KEY
+      REFERENCES siteflow_workspaces(id)
+      ON DELETE CASCADE,
+
+      state_json JSONB
+      NOT NULL DEFAULT '{}'::jsonb,
+
+      revision BIGINT
+      NOT NULL DEFAULT 1,
+
+      updated_by TEXT
+      NOT NULL DEFAULT '',
+
+      updated_at TIMESTAMPTZ
+      NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  console.log(
+    "SiteFlow inbox + collaboration + publishing database ready."
+  );
 }
 
-initDatabase().catch((err) => {
-  console.error("Database initialization error:", err);
-});
+initDatabase().catch(
+  (error) =>
+    console.error(
+      "Database initialization error:",
+      error
+    )
+);
 
-const SEND_COOLDOWN_MS = 30 * 1000;
-const CODE_TTL_MS = 10 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+const SEND_COOLDOWN_MS =
+  30 * 1000;
 
-const sendLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 12,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    ok: false,
-    error: "Too many verification requests. Please try again later."
-  }
-});
+const CODE_TTL_MS =
+  10 * 60 * 1000;
 
-const verifyLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 40,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    ok: false,
-    error: "Too many verification attempts. Please try again later."
-  }
-});
+const MAX_ATTEMPTS =
+  5;
 
-const formLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    ok: false,
-    error: "Too many form submissions. Please try again later."
-  }
-});
+const sendLimiter =
+  rateLimit({
+    windowMs:
+      15 * 60 * 1000,
 
-function normalizeEmail(value) {
-  return String(value || "").trim().toLowerCase();
+    max:
+      12,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+      ok: false,
+
+      error:
+        "Too many verification requests. Please try again later."
+    }
+  });
+
+const verifyLimiter =
+  rateLimit({
+    windowMs:
+      15 * 60 * 1000,
+
+    max:
+      40,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+      ok: false,
+
+      error:
+        "Too many verification attempts. Please try again later."
+    }
+  });
+
+const formLimiter =
+  rateLimit({
+    windowMs:
+      10 * 60 * 1000,
+
+    max:
+      30,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+      ok: false,
+
+      error:
+        "Too many form submissions. Please try again later."
+    }
+  });
+
+function normalizeEmail(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .trim()
+    .toLowerCase();
 }
 
-function cleanText(value, max = 5000) {
-  return String(value || "").trim().slice(0, max);
+function cleanText(
+  value,
+  max = 5000
+) {
+  return String(
+    value || ""
+  )
+    .trim()
+    .slice(
+      0,
+      max
+    );
 }
 
-function isValidEmail(email) {
-  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function isValidEmail(
+  email
+) {
+  return (
+    email.length <= 254 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      email
+    )
+  );
 }
 
-function hashCode(email, code) {
-  const secret = VERIFICATION_SECRET || "development-only-secret";
+function hashCode(
+  email,
+  code
+) {
+  const secret =
+    VERIFICATION_SECRET ||
+    "development-only-secret";
 
   return crypto
-    .createHmac("sha256", secret)
-    .update(`${email}:${code}`)
-    .digest("hex");
+    .createHmac(
+      "sha256",
+      secret
+    )
+    .update(
+      `${email}:${code}`
+    )
+    .digest(
+      "hex"
+    );
 }
 
-function hashInboxKey(value) {
+function hashInboxKey(
+  value
+) {
   return crypto
-    .createHash("sha256")
-    .update(String(value || ""))
-    .digest("hex");
+    .createHash(
+      "sha256"
+    )
+    .update(
+      String(
+        value || ""
+      )
+    )
+    .digest(
+      "hex"
+    );
 }
 
-function safeEqual(a, b) {
-  const left = Buffer.from(String(a));
-  const right = Buffer.from(String(b));
+function safeEqual(
+  a,
+  b
+) {
+  const left =
+    Buffer.from(
+      String(a)
+    );
+
+  const right =
+    Buffer.from(
+      String(b)
+    );
 
   return (
-    left.length === right.length &&
-    crypto.timingSafeEqual(left, right)
+    left.length ===
+      right.length &&
+    crypto.timingSafeEqual(
+      left,
+      right
+    )
   );
 }
 
 function createCode() {
   return String(
-    crypto.randomInt(0, 1_000_000)
-  ).padStart(6, "0");
+    crypto.randomInt(
+      0,
+      1_000_000
+    )
+  ).padStart(
+    6,
+    "0"
+  );
 }
 
-function createId(prefix = "msg") {
-  return `${prefix}_${crypto.randomBytes(12).toString("hex")}`;
+function createId(
+  prefix = "msg"
+) {
+  return `${prefix}_${crypto
+    .randomBytes(12)
+    .toString("hex")}`;
 }
 
-function verificationEmailHtml(code) {
+function verificationEmailHtml(
+  code
+) {
   return `<!doctype html>
 <html>
 <body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#17181b">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 16px;background:#f4f5f7">
+
+<table
+role="presentation"
+width="100%"
+cellspacing="0"
+cellpadding="0"
+style="padding:32px 16px;background:#f4f5f7"
+>
 <tr>
 <td align="center">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#fff;border:1px solid #e5e7eb;border-radius:18px">
+
+<table
+role="presentation"
+width="100%"
+cellspacing="0"
+cellpadding="0"
+style="max-width:520px;background:#fff;border:1px solid #e5e7eb;border-radius:18px"
+>
 <tr>
 <td style="padding:34px">
+
 <div style="font-size:22px;font-weight:800;margin-bottom:24px">
 SiteFlow
 </div>
@@ -265,17 +686,22 @@ ${code}
 This code expires in 10 minutes.
 If you didn't request it, you can ignore this email.
 </p>
+
 </td>
 </tr>
 </table>
+
 </td>
 </tr>
 </table>
+
 </body>
 </html>`;
 }
 
-function verificationEmailText(code) {
+function verificationEmailText(
+  code
+) {
   return [
     "SiteFlow",
     "",
@@ -285,42 +711,77 @@ function verificationEmailText(code) {
     "",
     "This code expires in 10 minutes.",
     "If you didn't request it, you can ignore this email."
-  ].join("\n");
+  ].join(
+    "\n"
+  );
 }
 
-async function sendWithAgentMail(to, code) {
-  if (!AGENTMAIL_API_KEY) {
-    throw new Error("AgentMail is not configured.");
+async function sendWithAgentMail(
+  to,
+  code
+) {
+  if (
+    !AGENTMAIL_API_KEY
+  ) {
+    throw new Error(
+      "AgentMail is not configured."
+    );
   }
 
-  const inboxId = encodeURIComponent(AGENTMAIL_INBOX);
+  const inboxId =
+    encodeURIComponent(
+      AGENTMAIL_INBOX
+    );
 
-  const response = await fetch(
-    `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
-    {
-      method: "POST",
+  const response =
+    await fetch(
+      `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
+      {
+        method:
+          "POST",
 
-      headers: {
-        Authorization: `Bearer ${AGENTMAIL_API_KEY}`,
-        "Content-Type": "application/json"
-      },
+        headers: {
+          Authorization:
+            `Bearer ${AGENTMAIL_API_KEY}`,
 
-      body: JSON.stringify({
-        to,
-        subject: `${code} is your SiteFlow verification code`,
-        text: verificationEmailText(code),
-        html: verificationEmailHtml(code)
-      })
-    }
-  );
+          "Content-Type":
+            "application/json"
+        },
 
-  if (!response.ok) {
-    let details = "";
+        body:
+          JSON.stringify({
+            to,
+
+            subject:
+              `${code} is your SiteFlow verification code`,
+
+            text:
+              verificationEmailText(
+                code
+              ),
+
+            html:
+              verificationEmailHtml(
+                code
+              )
+          })
+      }
+    );
+
+  if (
+    !response.ok
+  ) {
+    let details =
+      "";
 
     try {
-      details = JSON.stringify(await response.json());
+      details =
+        JSON.stringify(
+          await response.json()
+        );
     } catch {
-      details = await response.text();
+      details =
+        await response.text();
     }
 
     console.error(
@@ -337,69 +798,267 @@ async function sendWithAgentMail(to, code) {
   return response.json();
 }
 
-async function getWorkspace(workspaceId) {
-  if (pool) {
-    const { rows } = await pool.query(
-      "SELECT * FROM siteflow_workspaces WHERE id=$1",
-      [workspaceId]
+const RESERVED_SITE_SLUGS =
+  new Set([
+    "www",
+    "app",
+    "api",
+    "admin",
+    "dashboard",
+    "account",
+    "login",
+    "signup",
+    "support",
+    "help",
+    "mail",
+    "static",
+    "assets",
+    "cdn",
+    "status",
+    "verify",
+    "collaboration"
+  ]);
+
+function normalizeSiteSlug(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .trim()
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9-]+/g,
+      "-"
+    )
+    .replace(
+      /^-+|-+$/g,
+      ""
+    )
+    .replace(
+      /-+/g,
+      "-"
+    )
+    .slice(
+      0,
+      63
     );
-
-    return rows[0] || null;
-  }
-
-  return memoryWorkspaces.get(workspaceId) || null;
 }
 
-async function requireInboxAccess(req, res, next) {
+function validateSiteSlug(
+  slug
+) {
+  if (
+    !slug ||
+    slug.length < 3
+  ) {
+    return "Site address must be at least 3 characters.";
+  }
+
+  if (
+    slug.length > 63
+  ) {
+    return "Site address is too long.";
+  }
+
+  if (
+    !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(
+      slug
+    )
+  ) {
+    return "Use only letters, numbers, and hyphens.";
+  }
+
+  if (
+    RESERVED_SITE_SLUGS.has(
+      slug
+    )
+  ) {
+    return "That SiteFlow address is reserved.";
+  }
+
+  return "";
+}
+
+function publishedUrl(
+  slug
+) {
+  return (
+    SITEFLOW_ROOT_DOMAIN &&
+    slug
+      ? `https://${slug}.${SITEFLOW_ROOT_DOMAIN}`
+      : ""
+  );
+}
+
+async function getPublishedSiteBySlug(
+  slug
+) {
+  if (pool) {
+    const {
+      rows
+    } =
+      await pool.query(
+        `
+          SELECT
+            id,
+            project_name,
+            site_slug,
+            published,
+            published_html,
+            published_at
+
+          FROM
+            siteflow_workspaces
+
+          WHERE
+            site_slug=$1
+
+          LIMIT 1
+        `,
+        [
+          slug
+        ]
+      );
+
+    return (
+      rows[0] ||
+      null
+    );
+  }
+
+  return (
+    memoryPublishedSites.get(
+      slug
+    ) ||
+    null
+  );
+}
+
+async function getWorkspace(
+  workspaceId
+) {
+  if (pool) {
+    const {
+      rows
+    } =
+      await pool.query(
+        `
+          SELECT *
+          FROM siteflow_workspaces
+          WHERE id=$1
+        `,
+        [
+          workspaceId
+        ]
+      );
+
+    return (
+      rows[0] ||
+      null
+    );
+  }
+
+  return (
+    memoryWorkspaces.get(
+      workspaceId
+    ) ||
+    null
+  );
+}
+
+async function requireInboxAccess(
+  req,
+  res,
+  next
+) {
   try {
-    const workspaceId = cleanText(
-      req.query.workspaceId || req.body?.workspaceId,
-      200
-    );
+    const workspaceId =
+      cleanText(
+        req.query.workspaceId ||
+          req.body
+            ?.workspaceId,
+        200
+      );
 
-    const inboxKey = cleanText(
-      req.get("x-siteflow-inbox-key"),
-      500
-    );
+    const inboxKey =
+      cleanText(
+        req.get(
+          "x-siteflow-inbox-key"
+        ),
+        500
+      );
 
-    if (!workspaceId || !inboxKey) {
-      return res.status(401).json({
-        ok: false,
-        error: "Inbox access details are missing."
-      });
+    if (
+      !workspaceId ||
+      !inboxKey
+    ) {
+      return res
+        .status(401)
+        .json({
+          ok:
+            false,
+
+          error:
+            "Inbox access details are missing."
+        });
     }
 
-    const workspace = await getWorkspace(workspaceId);
+    const workspace =
+      await getWorkspace(
+        workspaceId
+      );
 
     if (
       !workspace ||
       !safeEqual(
         workspace.inbox_key_hash,
-        hashInboxKey(inboxKey)
+        hashInboxKey(
+          inboxKey
+        )
       )
     ) {
-      return res.status(403).json({
-        ok: false,
-        error: "Inbox access denied."
-      });
+      return res
+        .status(403)
+        .json({
+          ok:
+            false,
+
+          error:
+            "Inbox access denied."
+        });
     }
 
-    req.workspace = workspace;
-    req.workspaceId = workspaceId;
+    req.workspace =
+      workspace;
+
+    req.workspaceId =
+      workspaceId;
 
     next();
   } catch (error) {
-    console.error(error);
+    console.error(
+      error
+    );
 
-    res.status(500).json({
-      ok: false,
-      error: "Could not verify inbox access."
-    });
+    res
+      .status(500)
+      .json({
+        ok:
+          false,
+
+        error:
+          "Could not verify inbox access."
+      });
   }
 }
 
 const COLLAB_INVITE_TTL_MS =
-  7 * 24 * 60 * 60 * 1000;
+  7 *
+  24 *
+  60 *
+  60 *
+  1000;
 
 const COLLAB_ROLES =
   new Set([
@@ -408,50 +1067,103 @@ const COLLAB_ROLES =
     "viewer"
   ]);
 
-const inviteLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    ok: false,
-    error: "Too many collaboration requests. Please try again later."
-  }
-});
+const inviteLimiter =
+  rateLimit({
+    windowMs:
+      15 *
+      60 *
+      1000,
 
-function hashToken(value) {
+    max:
+      30,
+
+    standardHeaders:
+      true,
+
+    legacyHeaders:
+      false,
+
+    message: {
+      ok:
+        false,
+
+      error:
+        "Too many collaboration requests. Please try again later."
+    }
+  });
+
+function hashToken(
+  value
+) {
   return crypto
-    .createHash("sha256")
-    .update(String(value || ""))
-    .digest("hex");
+    .createHash(
+      "sha256"
+    )
+    .update(
+      String(
+        value || ""
+      )
+    )
+    .digest(
+      "hex"
+    );
 }
 
-function makeSecureToken(bytes = 32) {
+function makeSecureToken(
+  bytes = 32
+) {
   return crypto
-    .randomBytes(bytes)
-    .toString("base64url");
+    .randomBytes(
+      bytes
+    )
+    .toString(
+      "base64url"
+    );
 }
 
-function normalizeRole(value) {
-  const role = String(value || "")
-    .trim()
-    .toLowerCase();
+function normalizeRole(
+  value
+) {
+  const role =
+    String(
+      value || ""
+    )
+      .trim()
+      .toLowerCase();
 
-  return COLLAB_ROLES.has(role)
+  return COLLAB_ROLES.has(
+    role
+  )
     ? role
     : "";
 }
 
-function appBaseUrl(req) {
-  if (SITEFLOW_APP_URL) {
-    if (/^https?:\/\//i.test(SITEFLOW_APP_URL)) {
-      return SITEFLOW_APP_URL.replace(/\/+$/, "");
+function appBaseUrl(
+  req
+) {
+  if (
+    SITEFLOW_APP_URL
+  ) {
+    if (
+      /^https?:\/\//i.test(
+        SITEFLOW_APP_URL
+      )
+    ) {
+      return SITEFLOW_APP_URL.replace(
+        /\/+$/,
+        ""
+      );
     }
 
-    return `https://${SITEFLOW_APP_URL.replace(/\/+$/, "")}`;
+    return `https://${SITEFLOW_APP_URL.replace(
+      /\/+$/,
+      ""
+    )}`;
   }
 
-  return `${req.protocol}://${req.get("host")}`;
+  return `${req.protocol}://${req.get(
+    "host"
+  )}`;
 }
 
 function collaborationEmailHtml({
@@ -460,26 +1172,54 @@ function collaborationEmailHtml({
   role,
   inviteUrl
 }) {
-  const esc = (v) =>
-    String(v || "").replace(
-      /[&<>"']/g,
-      (ch) =>
-        ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#39;"
-        })[ch]
-    );
+  const esc =
+    (value) =>
+      String(
+        value || ""
+      ).replace(
+        /[&<>"']/g,
+        (character) =>
+          ({
+            "&":
+              "&amp;",
+
+            "<":
+              "&lt;",
+
+            ">":
+              "&gt;",
+
+            '"':
+              "&quot;",
+
+            "'":
+              "&#39;"
+          })[
+            character
+          ]
+      );
 
   return `<!doctype html>
 <html>
 <body style="margin:0;padding:0;background:#f5f6f8;font-family:Arial,Helvetica,sans-serif;color:#17181b">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:34px 16px">
+
+<table
+role="presentation"
+width="100%"
+cellspacing="0"
+cellpadding="0"
+style="padding:34px 16px"
+>
 <tr>
 <td align="center">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fff;border:1px solid #e7e9ee;border-radius:20px">
+
+<table
+role="presentation"
+width="100%"
+cellspacing="0"
+cellpadding="0"
+style="max-width:560px;background:#fff;border:1px solid #e7e9ee;border-radius:20px"
+>
 <tr>
 <td style="padding:36px">
 
@@ -488,7 +1228,7 @@ SiteFlow Collaboration
 </div>
 
 <h1 style="font-size:25px;line-height:1.25;margin:0 0 12px">
-You’ve been invited to collaborate
+You've been invited to collaborate
 </h1>
 
 <p style="font-size:15px;line-height:1.65;color:#60646c;margin:0 0 20px">
@@ -507,15 +1247,17 @@ Accept invitation
 
 <p style="font-size:13px;line-height:1.6;color:#777c85;margin:24px 0 0">
 This invitation expires in 7 days.
-If you weren’t expecting it, you can ignore this email.
+If you weren't expecting it, you can ignore this email.
 </p>
 
 </td>
 </tr>
 </table>
+
 </td>
 </tr>
 </table>
+
 </body>
 </html>`;
 }
@@ -536,44 +1278,68 @@ function collaborationEmailText({
     `Accept invitation: ${inviteUrl}`,
     "",
     "This invitation expires in 7 days."
-  ].join("\n");
+  ].join(
+    "\n"
+  );
 }
 
 async function sendCollaborationInvite(
   to,
   payload
 ) {
-  if (!COLLAB_AGENTMAIL_API_KEY) {
+  if (
+    !COLLAB_AGENTMAIL_API_KEY
+  ) {
     throw new Error(
       "Collaboration AgentMail is not configured."
     );
   }
 
-  const inboxId = encodeURIComponent(
-    COLLAB_AGENTMAIL_INBOX
-  );
+  const inboxId =
+    encodeURIComponent(
+      COLLAB_AGENTMAIL_INBOX
+    );
 
-  const response = await fetch(
-    `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
-    {
-      method: "POST",
+  const response =
+    await fetch(
+      `https://api.agentmail.to/v0/inboxes/${inboxId}/messages/send`,
+      {
+        method:
+          "POST",
 
-      headers: {
-        Authorization: `Bearer ${COLLAB_AGENTMAIL_API_KEY}`,
-        "Content-Type": "application/json"
-      },
+        headers: {
+          Authorization:
+            `Bearer ${COLLAB_AGENTMAIL_API_KEY}`,
 
-      body: JSON.stringify({
-        to,
-        subject: `You're invited to collaborate on ${payload.projectName} in SiteFlow`,
-        text: collaborationEmailText(payload),
-        html: collaborationEmailHtml(payload)
-      })
-    }
-  );
+          "Content-Type":
+            "application/json"
+        },
 
-  if (!response.ok) {
-    let details = "";
+        body:
+          JSON.stringify({
+            to,
+
+            subject:
+              `You're invited to collaborate on ${payload.projectName} in SiteFlow`,
+
+            text:
+              collaborationEmailText(
+                payload
+              ),
+
+            html:
+              collaborationEmailHtml(
+                payload
+              )
+          })
+      }
+    );
+
+  if (
+    !response.ok
+  ) {
+    let details =
+      "";
 
     try {
       details =
@@ -608,7 +1374,8 @@ async function requireOwner(
     const workspaceId =
       cleanText(
         req.query.workspaceId ||
-        req.body?.workspaceId,
+          req.body
+            ?.workspaceId,
         200
       );
 
@@ -627,7 +1394,8 @@ async function requireOwner(
       return res
         .status(401)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Owner access details are missing."
@@ -651,7 +1419,8 @@ async function requireOwner(
       return res
         .status(403)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Only the project owner can do that."
@@ -673,7 +1442,8 @@ async function requireOwner(
     res
       .status(500)
       .json({
-        ok: false,
+        ok:
+          false,
 
         error:
           "Could not verify project owner."
@@ -690,7 +1460,8 @@ async function requireCollaborator(
     const workspaceId =
       cleanText(
         req.query.workspaceId ||
-        req.body?.workspaceId,
+          req.body
+            ?.workspaceId,
         200
       );
 
@@ -719,7 +1490,8 @@ async function requireCollaborator(
       return res
         .status(401)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Collaboration access details are missing."
@@ -738,7 +1510,7 @@ async function requireCollaborator(
             SELECT *
             FROM siteflow_project_members
             WHERE workspace_id=$1
-              AND email=$2
+            AND email=$2
           `,
           [
             workspaceId,
@@ -769,7 +1541,8 @@ async function requireCollaborator(
       return res
         .status(403)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Collaboration access denied."
@@ -791,7 +1564,8 @@ async function requireCollaborator(
     res
       .status(500)
       .json({
-        ok: false,
+        ok:
+          false,
 
         error:
           "Could not verify collaborator access."
@@ -808,7 +1582,8 @@ async function resolveProjectAccess(
     const workspaceId =
       cleanText(
         req.query.workspaceId ||
-        req.body?.workspaceId,
+          req.body
+            ?.workspaceId,
         200
       );
 
@@ -818,7 +1593,8 @@ async function resolveProjectAccess(
       return res
         .status(400)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "workspaceId is required."
@@ -853,20 +1629,19 @@ async function resolveProjectAccess(
         req.workspaceId =
           workspaceId;
 
-        req.projectAccess =
-          {
-            type:
-              "owner",
+        req.projectAccess = {
+          type:
+            "owner",
 
-            email:
-              workspace.owner_email,
+          email:
+            workspace.owner_email,
 
-            role:
-              "owner",
+          role:
+            "owner",
 
-            canWrite:
-              true
-          };
+          canWrite:
+            true
+        };
 
         return next();
       }
@@ -896,7 +1671,8 @@ async function resolveProjectAccess(
       return res
         .status(401)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Project access details are missing."
@@ -915,7 +1691,7 @@ async function resolveProjectAccess(
             SELECT *
             FROM siteflow_project_members
             WHERE workspace_id=$1
-              AND email=$2
+            AND email=$2
           `,
           [
             workspaceId,
@@ -946,7 +1722,8 @@ async function resolveProjectAccess(
       return res
         .status(403)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Project access denied."
@@ -956,20 +1733,19 @@ async function resolveProjectAccess(
     req.workspaceId =
       workspaceId;
 
-    req.projectAccess =
-      {
-        type:
-          "collaborator",
+    req.projectAccess = {
+      type:
+        "collaborator",
 
-        email,
+      email,
 
-        role:
-          member.role,
+      role:
+        member.role,
 
-        canWrite:
-          member.role !==
-          "viewer"
-      };
+      canWrite:
+        member.role !==
+        "viewer"
+    };
 
     next();
   } catch (error) {
@@ -980,7 +1756,8 @@ async function resolveProjectAccess(
     res
       .status(500)
       .json({
-        ok: false,
+        ok:
+          false,
 
         error:
           "Could not verify project access."
@@ -1020,8 +1797,11 @@ app.get(
                 updated_by,
                 updated_at
 
-              FROM siteflow_project_state
-              WHERE workspace_id=$1
+              FROM
+                siteflow_project_state
+
+              WHERE
+                workspace_id=$1
             `,
             [
               req.workspaceId
@@ -1070,7 +1850,8 @@ app.get(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         state,
 
@@ -1091,7 +1872,8 @@ app.get(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not load the shared project."
@@ -1115,7 +1897,8 @@ app.put(
         return res
           .status(403)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Viewer access is read-only."
@@ -1123,7 +1906,8 @@ app.put(
       }
 
       const state =
-        req.body?.state;
+        req.body
+          ?.state;
 
       if (
         !state ||
@@ -1136,7 +1920,8 @@ app.put(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Project state is invalid."
@@ -1158,7 +1943,8 @@ app.put(
         return res
           .status(413)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Project is too large to sync."
@@ -1167,8 +1953,9 @@ app.put(
 
       const expectedRevision =
         Number(
-          req.body?.revision ||
-          0
+          req.body
+            ?.revision ||
+            0
         );
 
       let revision;
@@ -1190,8 +1977,11 @@ app.put(
             await client.query(
               `
                 SELECT revision
+
                 FROM siteflow_project_state
+
                 WHERE workspace_id=$1
+
                 FOR UPDATE
               `,
               [
@@ -1221,7 +2011,8 @@ app.put(
             return res
               .status(409)
               .json({
-                ok: false,
+                ok:
+                  false,
 
                 error:
                   "This project changed somewhere else.",
@@ -1255,7 +2046,9 @@ app.put(
                   NOW()
                 )
 
-                ON CONFLICT(workspace_id)
+                ON CONFLICT(
+                  workspace_id
+                )
 
                 DO UPDATE SET
                   state_json =
@@ -1270,15 +2063,13 @@ app.put(
                   updated_at =
                     NOW()
 
-                RETURNING updated_at
+                RETURNING
+                  updated_at
               `,
               [
                 req.workspaceId,
-
                 payload,
-
                 revision,
-
                 req.projectAccess
                   .email
               ]
@@ -1310,7 +2101,8 @@ app.put(
           );
 
         const currentRevision =
-          current?.revision ||
+          current
+            ?.revision ||
           0;
 
         if (
@@ -1322,7 +2114,8 @@ app.put(
           return res
             .status(409)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "This project changed somewhere else.",
@@ -1340,9 +2133,7 @@ app.put(
           req.workspaceId,
           {
             state,
-
             revision,
-
             updatedAt,
 
             updatedBy:
@@ -1353,7 +2144,8 @@ app.put(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         revision,
 
@@ -1371,7 +2163,8 @@ app.put(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not save the shared project."
@@ -1387,7 +2180,8 @@ app.get(
     res
   ) => {
     res.json({
-      ok: true,
+      ok:
+        true,
 
       service:
         "siteflow",
@@ -1411,7 +2205,11 @@ app.get(
         ),
 
       collaborationInbox:
-        COLLAB_AGENTMAIL_INBOX
+        COLLAB_AGENTMAIL_INBOX,
+
+      rootDomain:
+        SITEFLOW_ROOT_DOMAIN ||
+        null
     });
   }
 );
@@ -1425,7 +2223,8 @@ app.post(
   ) => {
     const email =
       normalizeEmail(
-        req.body?.email
+        req.body
+          ?.email
       );
 
     if (
@@ -1436,7 +2235,8 @@ app.post(
       return res
         .status(400)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Enter a valid email address."
@@ -1472,7 +2272,8 @@ app.post(
       return res
         .status(429)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             `Please wait ${retryAfter} seconds before requesting another code.`,
@@ -1512,7 +2313,8 @@ app.post(
       );
 
       return res.json({
-        ok: true,
+        ok:
+          true,
 
         message:
           "Verification code sent.",
@@ -1537,7 +2339,8 @@ app.post(
       return res
         .status(502)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "We couldn't send the verification email. Please try again."
@@ -1555,12 +2358,14 @@ app.post(
   ) => {
     const email =
       normalizeEmail(
-        req.body?.email
+        req.body
+          ?.email
       );
 
     const code =
       String(
-        req.body?.code ||
+        req.body
+          ?.code ||
         ""
       ).replace(
         /\D/g,
@@ -1578,7 +2383,8 @@ app.post(
       return res
         .status(400)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Enter your email and a 6-digit verification code."
@@ -1596,7 +2402,8 @@ app.post(
       return res
         .status(400)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "No active verification code was found. Request a new one."
@@ -1614,7 +2421,8 @@ app.post(
       return res
         .status(400)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "That code has expired. Request a new one."
@@ -1635,7 +2443,8 @@ app.post(
       return res
         .status(429)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Too many incorrect attempts. Request a new code."
@@ -1654,7 +2463,8 @@ app.post(
       return res
         .status(400)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "That verification code is incorrect.",
@@ -1673,7 +2483,8 @@ app.post(
     );
 
     return res.json({
-      ok: true,
+      ok:
+        true,
 
       verified:
         true,
@@ -1732,7 +2543,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Invalid workspace registration."
@@ -1759,7 +2571,8 @@ app.post(
         return res
           .status(409)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This workspace is already registered with a different inbox key."
@@ -1798,11 +2611,8 @@ app.post(
           `,
           [
             workspaceId,
-
             hash,
-
             ownerEmail,
-
             projectName
           ]
         );
@@ -1826,7 +2636,8 @@ app.post(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         workspaceId,
 
@@ -1843,7 +2654,8 @@ app.post(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not register the SiteFlow inbox."
@@ -1878,7 +2690,8 @@ app.post(
         return res
           .status(404)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This SiteFlow inbox is not connected yet."
@@ -1887,13 +2700,15 @@ app.post(
 
       const senderName =
         cleanText(
-          req.body?.name,
+          req.body
+            ?.name,
           200
         );
 
       const senderEmail =
         normalizeEmail(
-          req.body?.email
+          req.body
+            ?.email
         );
 
       const subject =
@@ -1906,13 +2721,15 @@ app.post(
 
       const message =
         cleanText(
-          req.body?.message,
+          req.body
+            ?.message,
           10000
         );
 
       const pageName =
         cleanText(
-          req.body?.pageName,
+          req.body
+            ?.pageName,
           200
         );
 
@@ -1930,7 +2747,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Please enter your name."
@@ -1945,7 +2763,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Please enter a valid email address."
@@ -1958,7 +2777,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Please enter a message."
@@ -2002,19 +2822,12 @@ app.post(
           `,
           [
             id,
-
             workspaceId,
-
             senderName,
-
             senderEmail,
-
             subject,
-
             message,
-
             pageName,
-
             formName
           ]
         );
@@ -2055,7 +2868,8 @@ app.post(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         message:
           "Message sent."
@@ -2068,7 +2882,8 @@ app.post(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not send your message."
@@ -2127,7 +2942,6 @@ app.get(
             `,
             [
               req.workspaceId,
-
               includeArchived
             ]
           );
@@ -2153,7 +2967,8 @@ app.get(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         messages,
 
@@ -2170,7 +2985,8 @@ app.get(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not load inbox messages."
@@ -2214,7 +3030,8 @@ app.get(
           );
 
         unread =
-          rows[0]?.count ||
+          rows[0]
+            ?.count ||
           0;
       } else {
         unread =
@@ -2230,7 +3047,8 @@ app.get(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         unread
       });
@@ -2242,7 +3060,8 @@ app.get(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not load unread count."
@@ -2294,7 +3113,8 @@ app.patch(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "No message changes supplied."
@@ -2305,13 +3125,12 @@ app.patch(
         const sets =
           [];
 
-        const values =
-          [
-            req.workspaceId,
-            id
-          ];
+        const values = [
+          req.workspaceId,
+          id
+        ];
 
-        let n =
+        let number =
           3;
 
         for (
@@ -2323,7 +3142,7 @@ app.patch(
           )
         ) {
           sets.push(
-            `${key}=$${n++}`
+            `${key}=$${number++}`
           );
 
           values.push(
@@ -2355,7 +3174,8 @@ app.patch(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Message not found."
@@ -2379,7 +3199,8 @@ app.patch(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Message not found."
@@ -2393,7 +3214,8 @@ app.patch(
       }
 
       res.json({
-        ok: true
+        ok:
+          true
       });
     } catch (error) {
       console.error(
@@ -2403,7 +3225,8 @@ app.patch(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not update the message."
@@ -2449,7 +3272,8 @@ app.delete(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Message not found."
@@ -2457,16 +3281,15 @@ app.delete(
         }
       } else {
         const index =
-          memoryMessages
-            .findIndex(
-              (
-                message
-              ) =>
-                message.workspace_id ===
-                  req.workspaceId &&
-                message.id ===
-                  id
-            );
+          memoryMessages.findIndex(
+            (
+              message
+            ) =>
+              message.workspace_id ===
+                req.workspaceId &&
+              message.id ===
+                id
+          );
 
         if (
           index <
@@ -2475,7 +3298,8 @@ app.delete(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Message not found."
@@ -2489,7 +3313,8 @@ app.delete(
       }
 
       res.json({
-        ok: true
+        ok:
+          true
       });
     } catch (error) {
       console.error(
@@ -2499,10 +3324,711 @@ app.delete(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not delete the message."
+        });
+    }
+  }
+);
+
+// ----------------------------------
+// Publishing + personalised URLs
+// ----------------------------------
+
+app.get(
+  "/api/sites/check-slug",
+  async (
+    req,
+    res
+  ) => {
+    try {
+      if (
+        !SITEFLOW_ROOT_DOMAIN
+      ) {
+        return res
+          .status(503)
+          .json({
+            ok:
+              false,
+
+            error:
+              "SiteFlow publishing domain is not configured yet.",
+
+            rootDomain:
+              null
+          });
+      }
+
+      const slug =
+        normalizeSiteSlug(
+          req.query.slug
+        );
+
+      const validationError =
+        validateSiteSlug(
+          slug
+        );
+
+      if (
+        validationError
+      ) {
+        return res
+          .status(400)
+          .json({
+            ok:
+              false,
+
+            error:
+              validationError,
+
+            slug,
+
+            available:
+              false,
+
+            rootDomain:
+              SITEFLOW_ROOT_DOMAIN
+          });
+      }
+
+      const existing =
+        await getPublishedSiteBySlug(
+          slug
+        );
+
+      return res.json({
+        ok:
+          true,
+
+        slug,
+
+        available:
+          !existing,
+
+        url:
+          publishedUrl(
+            slug
+          ),
+
+        rootDomain:
+          SITEFLOW_ROOT_DOMAIN
+      });
+    } catch (error) {
+      console.error(
+        "Slug availability error:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json({
+          ok:
+            false,
+
+          error:
+            "Could not check that SiteFlow address."
+        });
+    }
+  }
+);
+
+app.get(
+  "/api/sites/status",
+  resolveProjectAccess,
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const workspace =
+        await getWorkspace(
+          req.workspaceId
+        );
+
+      if (
+        !workspace
+      ) {
+        return res
+          .status(404)
+          .json({
+            ok:
+              false,
+
+            error:
+              "Project not found."
+          });
+      }
+
+      const slug =
+        workspace.site_slug ||
+        null;
+
+      return res.json({
+        ok:
+          true,
+
+        slug,
+
+        published:
+          Boolean(
+            workspace.published
+          ),
+
+        publishedAt:
+          workspace.published_at ||
+          null,
+
+        url:
+          slug
+            ? publishedUrl(
+                slug
+              )
+            : "",
+
+        rootDomain:
+          SITEFLOW_ROOT_DOMAIN ||
+          null,
+
+        access:
+          req.projectAccess
+      });
+    } catch (error) {
+      console.error(
+        "Publishing status error:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json({
+          ok:
+            false,
+
+          error:
+            "Could not load publishing status."
+        });
+    }
+  }
+);
+
+app.post(
+  "/api/sites/publish",
+  resolveProjectAccess,
+  async (
+    req,
+    res
+  ) => {
+    try {
+      if (
+        !SITEFLOW_ROOT_DOMAIN
+      ) {
+        return res
+          .status(503)
+          .json({
+            ok:
+              false,
+
+            error:
+              "SiteFlow publishing domain is not configured yet."
+          });
+      }
+
+      if (
+        !(
+          req.projectAccess
+            .role ===
+            "owner" ||
+          req.projectAccess
+            .role ===
+            "editor"
+        )
+      ) {
+        return res
+          .status(403)
+          .json({
+            ok:
+              false,
+
+            error:
+              "Only the project owner or an editor can publish this website."
+          });
+      }
+
+      const slug =
+        normalizeSiteSlug(
+          req.body
+            ?.slug
+        );
+
+      const validationError =
+        validateSiteSlug(
+          slug
+        );
+
+      if (
+        validationError
+      ) {
+        return res
+          .status(400)
+          .json({
+            ok:
+              false,
+
+            error:
+              validationError
+          });
+      }
+
+      const html =
+        String(
+          req.body
+            ?.html ||
+            ""
+        );
+
+      if (
+        !html.trim()
+      ) {
+        return res
+          .status(400)
+          .json({
+            ok:
+              false,
+
+            error:
+              "Published website HTML is missing."
+          });
+      }
+
+      if (
+        Buffer.byteLength(
+          html,
+          "utf8"
+        ) >
+        4_500_000
+      ) {
+        return res
+          .status(413)
+          .json({
+            ok:
+              false,
+
+            error:
+              "This website is too large to publish."
+          });
+      }
+
+      const workspace =
+        await getWorkspace(
+          req.workspaceId
+        );
+
+      if (
+        !workspace
+      ) {
+        return res
+          .status(404)
+          .json({
+            ok:
+              false,
+
+            error:
+              "Project not found."
+          });
+      }
+
+      if (pool) {
+        const taken =
+          await pool.query(
+            `
+              SELECT id
+              FROM siteflow_workspaces
+
+              WHERE
+                site_slug=$1
+                AND id<>$2
+
+              LIMIT 1
+            `,
+            [
+              slug,
+              req.workspaceId
+            ]
+          );
+
+        if (
+          taken.rowCount
+        ) {
+          return res
+            .status(409)
+            .json({
+              ok:
+                false,
+
+              error:
+                "That SiteFlow address is already taken."
+            });
+        }
+
+        try {
+          const result =
+            await pool.query(
+              `
+                UPDATE
+                  siteflow_workspaces
+
+                SET
+                  site_slug=$1,
+
+                  published=TRUE,
+
+                  published_html=$2,
+
+                  published_at=NOW(),
+
+                  updated_at=NOW()
+
+                WHERE
+                  id=$3
+
+                RETURNING
+                  site_slug,
+                  published,
+                  published_at
+              `,
+              [
+                slug,
+                html,
+                req.workspaceId
+              ]
+            );
+
+          if (
+            !result.rowCount
+          ) {
+            return res
+              .status(404)
+              .json({
+                ok:
+                  false,
+
+                error:
+                  "Project not found."
+              });
+          }
+        } catch (error) {
+          if (
+            error &&
+            error.code ===
+              "23505"
+          ) {
+            return res
+              .status(409)
+              .json({
+                ok:
+                  false,
+
+                error:
+                  "That SiteFlow address is already taken."
+              });
+          }
+
+          throw error;
+        }
+      } else {
+        const existing =
+          memoryPublishedSites.get(
+            slug
+          );
+
+        if (
+          existing &&
+          existing.id !==
+            req.workspaceId
+        ) {
+          return res
+            .status(409)
+            .json({
+              ok:
+                false,
+
+              error:
+                "That SiteFlow address is already taken."
+            });
+        }
+
+        if (
+          workspace.site_slug &&
+          workspace.site_slug !==
+            slug
+        ) {
+          memoryPublishedSites.delete(
+            workspace.site_slug
+          );
+        }
+
+        const publishedAt =
+          new Date()
+            .toISOString();
+
+        Object.assign(
+          workspace,
+          {
+            site_slug:
+              slug,
+
+            published:
+              true,
+
+            published_html:
+              html,
+
+            published_at:
+              publishedAt,
+
+            updated_at:
+              publishedAt
+          }
+        );
+
+        memoryWorkspaces.set(
+          req.workspaceId,
+          workspace
+        );
+
+        memoryPublishedSites.set(
+          slug,
+          {
+            id:
+              req.workspaceId,
+
+            project_name:
+              workspace.project_name,
+
+            site_slug:
+              slug,
+
+            published:
+              true,
+
+            published_html:
+              html,
+
+            published_at:
+              publishedAt
+          }
+        );
+      }
+
+      const updatedWorkspace =
+        await getWorkspace(
+          req.workspaceId
+        );
+
+      return res.json({
+        ok:
+          true,
+
+        slug,
+
+        published:
+          true,
+
+        publishedAt:
+          updatedWorkspace
+            ?.published_at ||
+          new Date()
+            .toISOString(),
+
+        url:
+          publishedUrl(
+            slug
+          ),
+
+        rootDomain:
+          SITEFLOW_ROOT_DOMAIN
+      });
+    } catch (error) {
+      console.error(
+        "Publish website error:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json({
+          ok:
+            false,
+
+          error:
+            "Could not publish website."
+        });
+    }
+  }
+);
+
+app.post(
+  "/api/sites/unpublish",
+  requireOwner,
+  async (
+    req,
+    res
+  ) => {
+    try {
+      if (pool) {
+        const result =
+          await pool.query(
+            `
+              UPDATE
+                siteflow_workspaces
+
+              SET
+                published=FALSE,
+
+                published_html=NULL,
+
+                published_at=NULL,
+
+                updated_at=NOW()
+
+              WHERE
+                id=$1
+
+              RETURNING
+                site_slug
+            `,
+            [
+              req.workspaceId
+            ]
+          );
+
+        if (
+          !result.rowCount
+        ) {
+          return res
+            .status(404)
+            .json({
+              ok:
+                false,
+
+              error:
+                "Project not found."
+            });
+        }
+
+        const slug =
+          result.rows[0]
+            ?.site_slug ||
+          null;
+
+        return res.json({
+          ok:
+            true,
+
+          published:
+            false,
+
+          slug,
+
+          url:
+            slug
+              ? publishedUrl(
+                  slug
+                )
+              : "",
+
+          rootDomain:
+            SITEFLOW_ROOT_DOMAIN ||
+            null
+        });
+      }
+
+      const workspace =
+        await getWorkspace(
+          req.workspaceId
+        );
+
+      if (
+        !workspace
+      ) {
+        return res
+          .status(404)
+          .json({
+            ok:
+              false,
+
+            error:
+              "Project not found."
+          });
+      }
+
+      const slug =
+        workspace.site_slug ||
+        null;
+
+      workspace.published =
+        false;
+
+      workspace.published_html =
+        null;
+
+      workspace.published_at =
+        null;
+
+      workspace.updated_at =
+        new Date()
+          .toISOString();
+
+      memoryWorkspaces.set(
+        req.workspaceId,
+        workspace
+      );
+
+      if (
+        slug
+      ) {
+        memoryPublishedSites.delete(
+          slug
+        );
+      }
+
+      return res.json({
+        ok:
+          true,
+
+        published:
+          false,
+
+        slug,
+
+        url:
+          slug
+            ? publishedUrl(
+                slug
+              )
+            : "",
+
+        rootDomain:
+          SITEFLOW_ROOT_DOMAIN ||
+          null
+      });
+    } catch (error) {
+      console.error(
+        "Unpublish website error:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json({
+          ok:
+            false,
+
+          error:
+            "Could not unpublish website."
         });
     }
   }
@@ -2519,12 +4045,14 @@ app.post(
     try {
       const email =
         normalizeEmail(
-          req.body?.email
+          req.body
+            ?.email
         );
 
       const role =
         normalizeRole(
-          req.body?.role
+          req.body
+            ?.role
         );
 
       if (
@@ -2535,7 +4063,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Enter a valid collaborator email."
@@ -2548,7 +4077,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Choose editor, content, or viewer access."
@@ -2565,7 +4095,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "The project owner is already a member."
@@ -2577,8 +4108,12 @@ app.post(
           await pool.query(
             `
               SELECT 1
-              FROM siteflow_project_members
-              WHERE workspace_id=$1
+
+              FROM
+                siteflow_project_members
+
+              WHERE
+                workspace_id=$1
                 AND email=$2
             `,
             [
@@ -2594,7 +4129,8 @@ app.post(
           return res
             .status(409)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "That person is already a collaborator."
@@ -2628,7 +4164,8 @@ app.post(
         return res
           .status(409)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "That person is already a collaborator."
@@ -2776,7 +4313,8 @@ app.post(
               DELETE FROM
                 siteflow_project_invites
 
-              WHERE id=$1
+              WHERE
+                id=$1
             `,
             [
               id
@@ -2792,13 +4330,12 @@ app.post(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         invite: {
           id,
-
           email,
-
           role,
 
           status:
@@ -2815,7 +4352,8 @@ app.post(
       res
         .status(502)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             error.message ===
@@ -2975,7 +4513,8 @@ app.get(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         owner: {
           email:
@@ -2998,7 +4537,8 @@ app.get(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not load collaboration members."
@@ -3027,7 +4567,8 @@ app.get(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Invitation token is missing."
@@ -3078,7 +4619,8 @@ app.get(
           null;
 
         projectName =
-          invite?.project_name ||
+          invite
+            ?.project_name ||
           projectName;
       } else {
         invite =
@@ -3115,7 +4657,8 @@ app.get(
         return res
           .status(404)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Invitation not found."
@@ -3128,7 +4671,8 @@ app.get(
         return res
           .status(410)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation was revoked."
@@ -3141,7 +4685,8 @@ app.get(
         return res
           .status(410)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation has already been accepted."
@@ -3157,7 +4702,8 @@ app.get(
         return res
           .status(410)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation has expired."
@@ -3165,7 +4711,8 @@ app.get(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         invite: {
           email:
@@ -3191,7 +4738,8 @@ app.get(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not load invitation."
@@ -3210,13 +4758,15 @@ app.post(
     try {
       const token =
         cleanText(
-          req.body?.token,
+          req.body
+            ?.token,
           1000
         );
 
       const email =
         normalizeEmail(
-          req.body?.email
+          req.body
+            ?.email
         );
 
       if (
@@ -3228,7 +4778,8 @@ app.post(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Invitation and email are required."
@@ -3285,7 +4836,8 @@ app.post(
         return res
           .status(403)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation does not match that email."
@@ -3298,7 +4850,8 @@ app.post(
         return res
           .status(410)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation was revoked."
@@ -3311,7 +4864,8 @@ app.post(
         return res
           .status(410)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation has already been accepted."
@@ -3327,7 +4881,8 @@ app.post(
         return res
           .status(410)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "This invitation has expired."
@@ -3394,15 +4949,10 @@ app.post(
             `,
             [
               memberId,
-
               invite.workspace_id,
-
               email,
-
               invite.role,
-
               accessKeyHash,
-
               invite.invited_by
             ]
           );
@@ -3472,7 +5022,8 @@ app.post(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         workspaceId:
           invite.workspace_id,
@@ -3495,7 +5046,8 @@ app.post(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not accept invitation."
@@ -3520,7 +5072,8 @@ app.patch(
 
       const role =
         normalizeRole(
-          req.body?.role
+          req.body
+            ?.role
         );
 
       if (
@@ -3529,7 +5082,8 @@ app.patch(
         return res
           .status(400)
           .json({
-            ok: false,
+            ok:
+              false,
 
             error:
               "Choose editor, content, or viewer access."
@@ -3564,7 +5118,8 @@ app.patch(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Collaborator not found."
@@ -3590,7 +5145,8 @@ app.patch(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Collaborator not found."
@@ -3606,7 +5162,8 @@ app.patch(
       }
 
       res.json({
-        ok: true,
+        ok:
+          true,
 
         role
       });
@@ -3618,7 +5175,8 @@ app.patch(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not update collaborator."
@@ -3664,7 +5222,8 @@ app.delete(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Collaborator not found."
@@ -3691,7 +5250,8 @@ app.delete(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Collaborator not found."
@@ -3704,7 +5264,8 @@ app.delete(
       }
 
       res.json({
-        ok: true
+        ok:
+          true
       });
     } catch (error) {
       console.error(
@@ -3714,7 +5275,8 @@ app.delete(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not remove collaborator."
@@ -3765,7 +5327,8 @@ app.delete(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Pending invitation not found."
@@ -3787,7 +5350,8 @@ app.delete(
           return res
             .status(404)
             .json({
-              ok: false,
+              ok:
+                false,
 
               error:
                 "Pending invitation not found."
@@ -3800,7 +5364,8 @@ app.delete(
       }
 
       res.json({
-        ok: true
+        ok:
+          true
       });
     } catch (error) {
       console.error(
@@ -3810,7 +5375,8 @@ app.delete(
       res
         .status(500)
         .json({
-          ok: false,
+          ok:
+            false,
 
           error:
             "Could not revoke invitation."
@@ -3827,7 +5393,8 @@ app.get(
     res
   ) => {
     res.json({
-      ok: true,
+      ok:
+        true,
 
       member: {
         email:
